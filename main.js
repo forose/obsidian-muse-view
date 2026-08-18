@@ -53,7 +53,7 @@ var ZH = {
   "sidebar.starred": "\u661F\u6807",
   "sidebar.today": "\u4ECA\u5929",
   "sidebar.week": "\u672C\u5468",
-  "sidebar.review": "\u5386\u53F2\u4E0A\u7684\u4ECA\u5929",
+  "sidebar.review": "\u56DE\u987E",
   "sidebar.todo": "\u5F85\u529E",
   "sidebar.noTag": "\u65E0\u6807\u7B7E",
   "sidebar.withImage": "\u6709\u56FE\u7247",
@@ -281,7 +281,7 @@ var EN = {
   "sidebar.starred": "Starred",
   "sidebar.today": "Today",
   "sidebar.week": "This week",
-  "sidebar.review": "On this day",
+  "sidebar.review": "Review",
   "sidebar.todo": "To-do",
   "sidebar.noTag": "No tag",
   "sidebar.withImage": "With image",
@@ -3235,6 +3235,15 @@ var _MuseView = class _MuseView extends import_obsidian6.ItemView {
       }
     };
     this.heatmapTooltipEl = null;
+    this.resizeTimer = null;
+    this.handleResize = () => {
+      if (this.resizeTimer !== null)
+        window.clearTimeout(this.resizeTimer);
+      this.resizeTimer = window.setTimeout(() => {
+        this.resizeTimer = null;
+        this.recomputeCollapse();
+      }, 150);
+    };
     this.plugin = plugin;
     this.overviewMode = this.plugin.settings.defaultOverviewMode || "heatmap";
   }
@@ -3282,6 +3291,7 @@ var _MuseView = class _MuseView extends import_obsidian6.ItemView {
       }
     });
     this.childComponent.load();
+    this.registerDomEvent(window, "resize", this.handleResize);
     try {
       await this.plugin.store.reloadAll();
     } catch (err) {
@@ -4636,45 +4646,84 @@ ${next}. `);
     requestAnimationFrame(() => {
       if (!bodyEl.isConnected)
         return;
-      const cs = getComputedStyle(bodyEl);
-      const lh = parseFloat(cs.lineHeight);
-      if (!isFinite(lh) || lh <= 0)
+      if (this.countVisualLines(bodyEl) <= limit)
         return;
-      const maxH = lh * limit;
-      const lines = this.countVisualLines(bodyEl);
-      if (lines <= limit)
+      this.applyCollapse(bodyEl, limit);
+    });
+  }
+  /** 对某个正文应用折叠态：设置折叠高度、加遮罩类、插入「展开/收起」按钮。
+   *  供初次渲染（maybeCollapse）与窗口尺寸变化时的重新评估复用。 */
+  applyCollapse(bodyEl, limit) {
+    if (bodyEl.classList.contains("has-toggle"))
+      return;
+    const cs = getComputedStyle(bodyEl);
+    const lh = parseFloat(cs.lineHeight);
+    if (!isFinite(lh) || lh <= 0)
+      return;
+    const maxH = lh * limit;
+    bodyEl.style.maxHeight = "";
+    bodyEl.style.setProperty("--muse-collapse-max", `${maxH}px`);
+    bodyEl.addClass("is-collapsed");
+    bodyEl.addClass("has-toggle");
+    const btn = bodyEl.createDiv({ cls: "muse-collapse-toggle" });
+    const icon = btn.createSpan({ cls: "muse-collapse-icon" });
+    (0, import_obsidian6.setIcon)(icon, "chevron-down");
+    btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (bodyEl.classList.contains("is-collapsed")) {
+        bodyEl.style.maxHeight = `${maxH}px`;
+        bodyEl.removeClass("is-collapsed");
+        void bodyEl.offsetHeight;
+        bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
+        (0, import_obsidian6.setIcon)(icon, "chevron-up");
+        btn.setAttribute("aria-label", this.plugin.t("card.collapseLess"));
+        bodyEl.dataset.userExpanded = "1";
+        const onEnd = () => {
+          bodyEl.removeEventListener("transitionend", onEnd);
+          if (!bodyEl.classList.contains("is-collapsed"))
+            bodyEl.style.maxHeight = "none";
+        };
+        bodyEl.addEventListener("transitionend", onEnd);
+      } else {
+        bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
+        void bodyEl.offsetHeight;
+        bodyEl.style.maxHeight = `${maxH}px`;
+        bodyEl.addClass("is-collapsed");
+        (0, import_obsidian6.setIcon)(icon, "chevron-down");
+        btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
+        delete bodyEl.dataset.userExpanded;
+      }
+    });
+  }
+  /** 撤销折叠态：移除遮罩类、渐变、内联高度，并删掉折叠按钮。
+   *  用于窗口变宽后内容已能完整显示的情形（无论此前是折叠还是用户手动展开）。 */
+  clearCollapse(bodyEl) {
+    var _a;
+    bodyEl.classList.remove("is-collapsed", "has-toggle");
+    bodyEl.style.maxHeight = "";
+    bodyEl.style.removeProperty("--muse-collapse-max");
+    delete bodyEl.dataset.userExpanded;
+    (_a = bodyEl.querySelector(".muse-collapse-toggle")) == null ? void 0 : _a.remove();
+  }
+  /** 窗口尺寸变化后，重新评估所有卡片正文的折叠状态。
+   *  - 内容已能完整显示（视觉行数 <= 限制）：撤掉折叠态与按钮。
+   *  - 内容仍超出且非用户手动展开：重新折叠（窗口变窄时）。
+   *  已手动展开过的卡片（dataset.userExpanded）保持展开，尊重用户选择。 */
+  recomputeCollapse() {
+    const limit = this.plugin.settings.collapseLineLimit;
+    if (limit <= 0)
+      return;
+    const bodies = this.containerEl.querySelectorAll(".muse-card-body");
+    bodies.forEach((body) => {
+      if (!body.isConnected)
         return;
-      bodyEl.style.setProperty("--muse-collapse-max", `${maxH}px`);
-      bodyEl.addClass("is-collapsed");
-      bodyEl.addClass("has-toggle");
-      const btn = bodyEl.createDiv({ cls: "muse-collapse-toggle" });
-      const icon = btn.createSpan({ cls: "muse-collapse-icon" });
-      (0, import_obsidian6.setIcon)(icon, "chevron-down");
-      btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (bodyEl.hasClass("is-collapsed")) {
-          bodyEl.style.maxHeight = maxH + "px";
-          bodyEl.removeClass("is-collapsed");
-          void bodyEl.offsetHeight;
-          bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
-          (0, import_obsidian6.setIcon)(icon, "chevron-up");
-          btn.setAttribute("aria-label", this.plugin.t("card.collapseLess"));
-          const onEnd = () => {
-            bodyEl.removeEventListener("transitionend", onEnd);
-            if (!bodyEl.hasClass("is-collapsed"))
-              bodyEl.style.maxHeight = "none";
-          };
-          bodyEl.addEventListener("transitionend", onEnd);
-        } else {
-          bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
-          void bodyEl.offsetHeight;
-          bodyEl.style.maxHeight = `${maxH}px`;
-          bodyEl.addClass("is-collapsed");
-          (0, import_obsidian6.setIcon)(icon, "chevron-down");
-          btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
-        }
-      });
+      const lines = this.countVisualLines(body);
+      if (lines <= limit) {
+        this.clearCollapse(body);
+      } else if (body.dataset.userExpanded !== "1" && !body.classList.contains("is-collapsed")) {
+        this.applyCollapse(body, limit);
+      }
     });
   }
   /** 统计元素内文本的视觉行数：遍历文本节点，用 Range.getClientRects 取得每行矩形，

@@ -125,6 +125,9 @@ export class MuseView extends ItemView {
       }
     });
     this.childComponent.load();
+    // 窗口尺寸变化（如启动后从非最大化切到最大化）后，重新评估卡片折叠状态，
+    // 避免「窄栏误折叠、变宽后展开按钮不消失」。registerDomEvent 会在视图关闭时自动解绑。
+    this.registerDomEvent(window, "resize", this.handleResize);
     try {
       await this.plugin.store.reloadAll();
     } catch (err) {
@@ -1597,56 +1600,103 @@ export class MuseView extends ItemView {
     // 若卡片已被重建（isConnected=false）则跳过，避免挂到旧 DOM。
     requestAnimationFrame(() => {
       if (!bodyEl.isConnected) return;
-      const cs = getComputedStyle(bodyEl);
-      const lh = parseFloat(cs.lineHeight);
-      if (!isFinite(lh) || lh <= 0) return;
-      const maxH = lh * limit;
-      // 直接统计正文视觉行数（按行 top 去重），避免 markdown 块间距 / 窄栏换行
-      // 造成的像素虚高，使"看起来不到 N 行"的笔记被误折叠。
-      const lines = this.countVisualLines(bodyEl);
-      if (lines <= limit) return;
-      // 用设置项行数推算最大高度（覆盖 CSS 默认的 --muse-collapse-max: 240px）。
-      bodyEl.style.setProperty("--muse-collapse-max", `${maxH}px`);
-      bodyEl.addClass("is-collapsed");
-      bodyEl.addClass("has-toggle");
-      const btn = bodyEl.createDiv({ cls: "muse-collapse-toggle" });
-      const icon = btn.createSpan({ cls: "muse-collapse-icon" });
-      setIcon(icon, "chevron-down");
-      btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (bodyEl.hasClass("is-collapsed")) {
-          // 展开：先锁定折叠高度作为过渡起点，再去掉折叠类让展开态样式
-          // （含 padding-bottom 留白）生效，然后以「含留白的完整高度」为目标过渡。
-          // 关键：必须在 removeClass 之后再测 scrollHeight，否则测得的高度不含
-          // 展开态留白，transitionend 置 max-height:none 时 body 会再长一截 → 末段跳动。
-          bodyEl.style.maxHeight = maxH + "px";
-          bodyEl.removeClass("is-collapsed");
-          // 强制 reflow，让起点高度与展开态样式先生效，下一步过渡才会从 maxH 起步
-          void bodyEl.offsetHeight;
-          bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
-          setIcon(icon, "chevron-up");
-          btn.setAttribute("aria-label", this.plugin.t("card.collapseLess"));
-          const onEnd = () => {
-            bodyEl.removeEventListener("transitionend", onEnd);
-            // 仅在仍处于展开态时放开高度限制；若中途又点了收起则保持折叠高度
-            if (!bodyEl.hasClass("is-collapsed")) bodyEl.style.maxHeight = "none";
-          };
-          bodyEl.addEventListener("transitionend", onEnd);
-        } else {
-          // 收起：先把高度锁为当前完整值（触发 reflow），再过渡到折叠高度，
-          // 按钮随 body 平滑上移。
-          bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
-          // 强制 reflow，让上面的高度赋值先生效，下一步过渡才会启动
-          void bodyEl.offsetHeight;
-          bodyEl.style.maxHeight = `${maxH}px`;
-          bodyEl.addClass("is-collapsed");
-          setIcon(icon, "chevron-down");
-          btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
-        }
-      });
+      if (this.countVisualLines(bodyEl) <= limit) return;
+      this.applyCollapse(bodyEl, limit);
     });
   }
+
+  /** 对某个正文应用折叠态：设置折叠高度、加遮罩类、插入「展开/收起」按钮。
+   *  供初次渲染（maybeCollapse）与窗口尺寸变化时的重新评估复用。 */
+  private applyCollapse(bodyEl: HTMLElement, limit: number): void {
+    // 已是折叠态则跳过，避免重复插入按钮。
+    if (bodyEl.classList.contains("has-toggle")) return;
+    const cs = getComputedStyle(bodyEl);
+    const lh = parseFloat(cs.lineHeight);
+    if (!isFinite(lh) || lh <= 0) return;
+    const maxH = lh * limit;
+    // 清掉可能残留的展开态内联高度，保证折叠类能生效。
+    bodyEl.style.maxHeight = "";
+    // 用设置项行数推算最大高度（覆盖 CSS 默认的 --muse-collapse-max: 240px）。
+    bodyEl.style.setProperty("--muse-collapse-max", `${maxH}px`);
+    bodyEl.addClass("is-collapsed");
+    bodyEl.addClass("has-toggle");
+    const btn = bodyEl.createDiv({ cls: "muse-collapse-toggle" });
+    const icon = btn.createSpan({ cls: "muse-collapse-icon" });
+    setIcon(icon, "chevron-down");
+    btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (bodyEl.classList.contains("is-collapsed")) {
+        // 展开：先锁定折叠高度作为过渡起点，再去掉折叠类让展开态样式
+        // （含 padding-bottom 留白）生效，然后以「含留白的完整高度」为目标过渡。
+        // 关键：必须在 removeClass 之后再测 scrollHeight，否则测得的高度不含
+        // 展开态留白，transitionend 置 max-height:none 时 body 会再长一截 → 末段跳动。
+        bodyEl.style.maxHeight = `${maxH}px`;
+        bodyEl.removeClass("is-collapsed");
+        // 强制 reflow，让起点高度与展开态样式先生效，下一步过渡才会从 maxH 起步
+        void bodyEl.offsetHeight;
+        bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
+        setIcon(icon, "chevron-up");
+        btn.setAttribute("aria-label", this.plugin.t("card.collapseLess"));
+        bodyEl.dataset.userExpanded = "1";
+        const onEnd = () => {
+          bodyEl.removeEventListener("transitionend", onEnd);
+          // 仅在仍处于展开态时放开高度限制；若中途又点了收起则保持折叠高度
+          if (!bodyEl.classList.contains("is-collapsed")) bodyEl.style.maxHeight = "none";
+        };
+        bodyEl.addEventListener("transitionend", onEnd);
+      } else {
+        // 收起：先把高度锁为当前完整值（触发 reflow），再过渡到折叠高度，
+        // 按钮随 body 平滑上移。
+        bodyEl.style.maxHeight = bodyEl.scrollHeight + "px";
+        // 强制 reflow，让上面的高度赋值先生效，下一步过渡才会启动
+        void bodyEl.offsetHeight;
+        bodyEl.style.maxHeight = `${maxH}px`;
+        bodyEl.addClass("is-collapsed");
+        setIcon(icon, "chevron-down");
+        btn.setAttribute("aria-label", this.plugin.t("card.collapseFull"));
+        delete bodyEl.dataset.userExpanded;
+      }
+    });
+  }
+
+  /** 撤销折叠态：移除遮罩类、渐变、内联高度，并删掉折叠按钮。
+   *  用于窗口变宽后内容已能完整显示的情形（无论此前是折叠还是用户手动展开）。 */
+  private clearCollapse(bodyEl: HTMLElement): void {
+    bodyEl.classList.remove("is-collapsed", "has-toggle");
+    bodyEl.style.maxHeight = "";
+    bodyEl.style.removeProperty("--muse-collapse-max");
+    delete bodyEl.dataset.userExpanded;
+    bodyEl.querySelector(".muse-collapse-toggle")?.remove();
+  }
+
+  /** 窗口尺寸变化后，重新评估所有卡片正文的折叠状态。
+   *  - 内容已能完整显示（视觉行数 <= 限制）：撤掉折叠态与按钮。
+   *  - 内容仍超出且非用户手动展开：重新折叠（窗口变窄时）。
+   *  已手动展开过的卡片（dataset.userExpanded）保持展开，尊重用户选择。 */
+  private recomputeCollapse(): void {
+    const limit = this.plugin.settings.collapseLineLimit;
+    if (limit <= 0) return;
+    const bodies = this.containerEl.querySelectorAll<HTMLElement>(".muse-card-body");
+    bodies.forEach((body) => {
+      if (!body.isConnected) return;
+      const lines = this.countVisualLines(body);
+      if (lines <= limit) {
+        this.clearCollapse(body);
+      } else if (body.dataset.userExpanded !== "1" && !body.classList.contains("is-collapsed")) {
+        this.applyCollapse(body, limit);
+      }
+    });
+  }
+
+  private resizeTimer: number | null = null;
+  private handleResize = (): void => {
+    if (this.resizeTimer !== null) window.clearTimeout(this.resizeTimer);
+    this.resizeTimer = window.setTimeout(() => {
+      this.resizeTimer = null;
+      this.recomputeCollapse();
+    }, 150);
+  };
 
   /** 统计元素内文本的视觉行数：遍历文本节点，用 Range.getClientRects 取得每行矩形，
    *  按行的纵向坐标（四舍五入）去重，得到真实视觉行数。不受 inline 元素拆分
