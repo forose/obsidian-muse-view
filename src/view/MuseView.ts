@@ -897,8 +897,9 @@ export class MuseView extends ItemView {
   /**
    * 主区域热力图 —— 统计头部（固定在滚动容器之外，不随列表滚动消失）。
    * 承载：最近一年贡献 / 最长连续 / 最近连续 / 共 N 条 + 少/多图例 + 筛选操作按钮。
-   * 数据来源：`plugin.store.getAll()`（与侧栏一致），不随列表 filter 变化，
-   * 提供稳定全局活跃度；「共 N 条」用当前筛选结果数，随筛选实时变化。
+   * 数据来源：`memos`（调用方传入 `filtered`，即当前筛选结果）—— 与「共 N 条」同源，
+   * 筛选激活时整块联动（3 个数 / 网格 / 计数一致）；默认（全部）时 filtered == 全部，
+   * 表现等价于全局活跃度。
    */
   private renderMetaHeatmapHead(
     host: HTMLElement,
@@ -1386,7 +1387,7 @@ export class MuseView extends ItemView {
     this.metaHeatmapHeadEl.removeClass("is-hidden");
     this.renderMetaHeatmapHead(
       this.metaHeatmapHeadEl,
-      this.plugin.store.getAll(),
+      filtered,
       this.describeFilter(filtered.length),
       {
         reroll: this.filter.preset === "random",
@@ -1397,7 +1398,9 @@ export class MuseView extends ItemView {
     if (this.plugin.settings.showHeatmap) {
       // 热力图网格作为 listEl 首个子元素渲染（跟随滚动）：
       // 向上滚动时网格会随卡片一起滚走，但统计头部固定在上方始终可见。
-      this.renderMetaHeatmapGrid(this.listEl, this.plugin.store.getAll());
+      // 网格与统计头部、共 N 条同源（filtered）：筛选激活时整块联动，
+      // 头部数字/网格/计数保持一致；默认（全部）时 filtered == 全部，等价全局。
+      this.renderMetaHeatmapGrid(this.listEl, filtered);
     }
 
     if (filtered.length === 0) {

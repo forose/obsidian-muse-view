@@ -4140,8 +4140,9 @@ ${next}. `);
   /**
    * 主区域热力图 —— 统计头部（固定在滚动容器之外，不随列表滚动消失）。
    * 承载：最近一年贡献 / 最长连续 / 最近连续 / 共 N 条 + 少/多图例 + 筛选操作按钮。
-   * 数据来源：`plugin.store.getAll()`（与侧栏一致），不随列表 filter 变化，
-   * 提供稳定全局活跃度；「共 N 条」用当前筛选结果数，随筛选实时变化。
+   * 数据来源：`memos`（调用方传入 `filtered`，即当前筛选结果）—— 与「共 N 条」同源，
+   * 筛选激活时整块联动（3 个数 / 网格 / 计数一致）；默认（全部）时 filtered == 全部，
+   * 表现等价于全局活跃度。
    */
   renderMetaHeatmapHead(host, memos, totalLabel, actions) {
     host.empty();
@@ -4576,7 +4577,7 @@ ${next}. `);
     this.metaHeatmapHeadEl.removeClass("is-hidden");
     this.renderMetaHeatmapHead(
       this.metaHeatmapHeadEl,
-      this.plugin.store.getAll(),
+      filtered,
       this.describeFilter(filtered.length),
       {
         reroll: this.filter.preset === "random",
@@ -4584,7 +4585,7 @@ ${next}. `);
       }
     );
     if (this.plugin.settings.showHeatmap) {
-      this.renderMetaHeatmapGrid(this.listEl, this.plugin.store.getAll());
+      this.renderMetaHeatmapGrid(this.listEl, filtered);
     }
     if (filtered.length === 0) {
       this.renderEmpty(this.listEl);
