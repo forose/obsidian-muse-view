@@ -3825,6 +3825,39 @@
   padding: 0 3px;
   font-size: 0.9em;
 }
+/* 围栏代码块：整段渲染为单个代码块（而非逐行各成一个空代码块） */
+.muse-lp-line.is-code-block {
+  white-space: normal;
+}
+.muse-lp-line.is-code-block pre {
+  margin: 0;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow-x: auto;
+}
+.muse-lp-line.is-code-block pre code {
+  white-space: pre;
+  font-family: var(--font-monospace);
+  background: transparent;
+  padding: 0;
+}
+/* 代码块内侧被隐藏的行：源码由起始行持有，仅占位不显示 */
+.muse-lp-line.is-code-hidden {
+  display: none;
+}
+/* 光标在代码块内：整段以字面文本显示（等宽、保留 ``` 围栏），不产生独立代码块/复制按钮 */
+.muse-lp-line.is-code-line {
+  font-family: var(--font-monospace);
+  white-space: pre-wrap;
+}
+/* 输入框内的代码块不显示原生复制按钮：编辑态不需要，且可避免空围栏变成孤立的复制图标 */
+.muse-input .copy-code-button,
+.muse-input pre > button,
+.muse-input .code-copy-button {
+  display: none !important;
+}
 .lp-link {
   color: var(--text-accent);
   text-decoration: underline;

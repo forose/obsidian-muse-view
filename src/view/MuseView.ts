@@ -511,9 +511,28 @@ export class MuseView extends ItemView {
     this.contentEl.toggleClass("muse-sidebar-open", open);
   }
 
+  private memoKey(memo: Memo): string {
+    return `${memo.file.path}#${memo.range[0]}`;
+  }
+
+  /** 编辑态高亮：仅当前 editingMemo 对应的卡片加 is-editing（列表不会因进入/退出编辑而重绘，
+   *  故在此手动切换；memo 为 null 时清除全部）。 */
+  private setEditingCardHighlight(memo: Memo | null): void {
+    this.contentEl.findAll(".muse-card").forEach((c) => {
+      const el = c as HTMLElement;
+      const match = memo != null && el.getAttribute("data-memo-key") === this.memoKey(memo);
+      el.toggleClass("is-editing", match);
+    });
+  }
+
   private enterEditMode(memo: Memo): void {
-    if (this.editor.getValue().trim()) this.saveDraft(this.editor.getValue());
+    // 仅在「正在撰写新 memo 草稿」时暂存草稿；编辑已有 memo 时不要把它内容写进草稿，
+    // 否则连续编辑两张卡再取消后，输入框会残留上一张卡的内容且无法回到草稿态。
+    if (!this.editingMemo && this.editor.getValue().trim()) {
+      this.saveDraft(this.editor.getValue());
+    }
     this.editingMemo = memo;
+    this.setEditingCardHighlight(memo);
     this.editor.setValue(memo.content);
     if (this.editDateTimeEl)
       this.editDateTimeEl.value = `${memo.date}T${memo.time}`;
@@ -525,6 +544,7 @@ export class MuseView extends ItemView {
 
   private exitEditMode(): void {
     this.editingMemo = null;
+    this.setEditingCardHighlight(null);
     this.editor.setValue(this.loadDraft());
     if (this.editDateTimeEl) this.editDateTimeEl.value = "";
     this.updateEditBanner();
@@ -1510,6 +1530,7 @@ export class MuseView extends ItemView {
         (memo.isPinned ? " is-pinned" : "") +
         (memo.isStarred ? " is-starred" : "") +
         (this.editingMemo === memo ? " is-editing" : ""),
+      attr: { "data-memo-key": this.memoKey(memo) },
     });
     card.addEventListener("dblclick", (e) => {
       const tgt = e.target as HTMLElement;

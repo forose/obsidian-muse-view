@@ -2251,27 +2251,41 @@ var LivePreviewEditor = class {
   /* ----------------------------- 接口实现 ----------------------------- */
   getValue() {
     const rows = this.lineEls();
-    return rows.map((row, i) => {
-      var _a, _b, _c, _d;
+    const parts = [];
+    rows.forEach((row, i) => {
+      var _a, _b, _c, _d, _e;
+      if (row.dataset.codeHidden)
+        return;
+      if (row.classList.contains("is-code-block")) {
+        parts.push((_a = row.dataset.src) != null ? _a : "");
+        return;
+      }
       if (row.classList.contains("is-rendered")) {
         const ds = row.dataset.src;
         if (!ds) {
-          const dom2 = ((_a = row.textContent) != null ? _a : "").trim();
-          if (dom2)
-            return dom2;
+          const dom = ((_b = row.textContent) != null ? _b : "").trim();
+          if (dom) {
+            parts.push(dom);
+            return;
+          }
         }
-        return (_b = ds != null ? ds : this.source[i]) != null ? _b : "";
+        parts.push((_c = ds != null ? ds : this.source[i]) != null ? _c : "");
+      } else {
+        const dom = (_d = row.textContent) != null ? _d : "";
+        if (dom.trim())
+          parts.push(dom);
+        else
+          parts.push((_e = this.source[i]) != null ? _e : "");
       }
-      const dom = (_c = row.textContent) != null ? _c : "";
-      if (dom.trim())
-        return dom;
-      return (_d = this.source[i]) != null ? _d : "";
-    }).join("\n");
+    });
+    return parts.join("\n");
   }
   setValue(v) {
     this.component.unload();
     this.component = new import_obsidian5.Component();
     this.component.load();
+    this.allSource = false;
+    this.composing = false;
     this.el.empty();
     this.source = v.length ? v.split("\n") : [""];
     this.source.forEach((s) => {
@@ -2433,15 +2447,24 @@ var LivePreviewEditor = class {
       rows[live].classList.add("is-active");
       delete rows[live].dataset.src;
     }
-    this.source = rows.map((row, i) => {
-      var _a, _b;
-      if (i === live || row.classList.contains("is-active")) {
-        return ((_a = row.textContent) != null ? _a : "").replace(/\n$/, "");
+    this.source = [];
+    rows.forEach((row, i) => {
+      var _a, _b, _c;
+      if (row.dataset.codeHidden)
+        return;
+      if (row.classList.contains("is-code-block") || row.dataset.codeBlock === "start") {
+        const joined = (_a = row.dataset.src) != null ? _a : "";
+        joined.split("\n").forEach((l) => this.source.push(l));
+        return;
       }
-      return (_b = row.dataset.src) != null ? _b : "";
+      if (i === live || row.classList.contains("is-active")) {
+        this.source.push(((_b = row.textContent) != null ? _b : "").replace(/\n$/, ""));
+      } else {
+        this.source.push((_c = row.dataset.src) != null ? _c : "");
+      }
     });
     this.cursorRow = live;
-    if (this.source.length > 1 && this.source.every((s) => !s.trim())) {
+    if (!rows.some((r) => r.classList.contains("is-code-block")) && this.source.length > 1 && this.source.every((s) => !s.trim())) {
       this.source = [""];
       for (let k = rows.length - 1; k >= 1; k--)
         rows[k].remove();
@@ -2554,44 +2577,93 @@ var LivePreviewEditor = class {
     const empty = this.getValue().trim().length === 0;
     this.el.toggleClass("is-empty", empty);
   }
-  /** 统一渲染：光标行做「源码 + 样式」，其余行做完整 markdown 渲染。 */
+  /** 统一渲染：光标行做「源码 + 样式」，其余行做完整 markdown 渲染。
+   *  围栏代码块（``` / ~~~）跨多行，逐行渲染会把上下两个围栏各自变成带复制按钮的
+   *  空代码块。因此检测代码块区间：光标在块外时整段渲染为单个代码块（内侧行隐藏）；
+   *  光标在块内时整段以源码 / 字面文本显示，便于编辑且不出现复制按钮。 */
   renderLines() {
-    var _a;
+    var _a, _b, _c, _d;
     const rows = this.lineEls();
     const cur = Math.max(0, Math.min(this.cursorRow, rows.length - 1));
+    const spans = this.getFenceSpans(this.source);
+    const spanOf = this.source.map(() => -1);
+    spans.forEach((sp) => {
+      for (let i2 = sp.start; i2 <= sp.end; i2++)
+        spanOf[i2] = spans.indexOf(sp);
+    });
+    const cursorInSpan = spanOf[cur] >= 0;
     const prevScroll = this.el.scrollTop;
+    const forceFull = spans.length > 0;
     let needRender = false;
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const src = (_a = this.source[i]) != null ? _a : "";
-      if (this.allSource && row.classList.contains("is-rendered")) {
-        needRender = true;
-        break;
-      }
-      if (i === cur) {
-        if (row.classList.contains("is-rendered"))
+    if (!forceFull) {
+      for (let i2 = 0; i2 < rows.length; i2++) {
+        const row = rows[i2];
+        const src = (_a = this.source[i2]) != null ? _a : "";
+        if (this.allSource && row.classList.contains("is-rendered")) {
           needRender = true;
-        else if (row.dataset.activeSrc !== src)
+          break;
+        }
+        if (i2 === cur) {
+          if (row.classList.contains("is-rendered"))
+            needRender = true;
+          else if (row.dataset.activeSrc !== src)
+            needRender = true;
+        } else if (!row.classList.contains("is-rendered") || row.dataset.src !== src) {
           needRender = true;
-      } else if (!row.classList.contains("is-rendered") || row.dataset.src !== src) {
-        needRender = true;
+        }
+        if (needRender)
+          break;
       }
-      if (needRender)
-        break;
     }
-    if (needRender) {
+    if (forceFull || needRender) {
       this.component.unload();
       this.component = new import_obsidian5.Component();
       this.component.load();
     }
-    rows.forEach((row, i) => {
-      var _a2;
-      const src = (_a2 = this.source[i]) != null ? _a2 : "";
+    let i = 0;
+    while (i < rows.length) {
+      const row = rows[i];
+      const src = (_b = this.source[i]) != null ? _b : "";
+      if (spanOf[i] >= 0) {
+        const sp = spans[spanOf[i]];
+        if (cursorInSpan) {
+          for (let k = sp.start; k <= sp.end; k++) {
+            const r = rows[k];
+            const s = (_c = this.source[k]) != null ? _c : "";
+            if (k === cur) {
+              this.clearCodeFlags(r);
+              r.classList.remove("is-rendered");
+              r.classList.add("is-active", "is-code-line");
+              if (r.dataset.activeSrc !== s) {
+                r.textContent = s;
+                r.dataset.activeSrc = s;
+              }
+            } else {
+              this.renderLiteralLine(r, s);
+            }
+          }
+          i = sp.end + 1;
+          continue;
+        }
+        const joined = this.source.slice(sp.start, sp.end + 1).join("\n");
+        this.renderCodeBlock(rows[sp.start], joined);
+        for (let k = sp.start + 1; k <= sp.end; k++) {
+          const r = rows[k];
+          r.classList.remove("is-rendered", "is-active", "is-code-block", "is-code-line");
+          r.classList.add("is-code-hidden");
+          r.dataset.codeHidden = "1";
+          r.dataset.src = (_d = this.source[k]) != null ? _d : "";
+          r.innerHTML = "";
+        }
+        i = sp.end + 1;
+        continue;
+      }
       if (this.allSource || i === cur)
         this.renderActiveLine(row, src);
       else
         this.renderInactiveLine(row, src);
-    });
+      i++;
+    }
     this.updateEmpty();
     this.el.scrollTop = prevScroll;
     requestAnimationFrame(() => {
@@ -2599,8 +2671,59 @@ var LivePreviewEditor = class {
         this.el.scrollTop = prevScroll;
     });
   }
+  /** 检测 source 中的围栏代码块区间（``` 或 ~~~ 起，到同字符围栏止；未闭合则延到末尾）。 */
+  getFenceSpans(src) {
+    const spans = [];
+    let i = 0;
+    while (i < src.length) {
+      const open = src[i].match(/^(```|~~~)/);
+      if (open) {
+        const marker = open[1][0];
+        const closing = new RegExp("^" + marker + "+\\s*$");
+        let end = -1;
+        for (let j = i + 1; j < src.length; j++) {
+          if (closing.test(src[j])) {
+            end = j;
+            break;
+          }
+        }
+        if (end === -1)
+          end = src.length - 1;
+        spans.push({ start: i, end });
+        i = end + 1;
+      } else {
+        i++;
+      }
+    }
+    return spans;
+  }
+  clearCodeFlags(row) {
+    row.classList.remove("is-code-block", "is-code-hidden", "is-code-line");
+    delete row.dataset.codeBlock;
+    delete row.dataset.codeHidden;
+  }
+  /** 把整段围栏代码块渲染为单个代码块（MarkdownRenderer 产出完整 <pre><code>）。 */
+  renderCodeBlock(row, joinedSrc) {
+    this.clearCodeFlags(row);
+    row.classList.add("is-code-block");
+    row.dataset.codeBlock = "start";
+    row.dataset.src = joinedSrc;
+    row.innerHTML = "";
+    import_obsidian5.MarkdownRenderer.render(this.app, joinedSrc, row, this.sourcePath, this.component);
+  }
+  /** 代码块内的非激活行：以字面文本显示（保留 ``` 围栏与代码内容，不触发独立代码块/复制按钮）。 */
+  renderLiteralLine(row, src) {
+    this.clearCodeFlags(row);
+    row.classList.add("is-code-line");
+    delete row.dataset.activeSrc;
+    if (row.dataset.src === src && row.textContent === src)
+      return;
+    row.textContent = src;
+    row.dataset.src = src;
+  }
   /** 非光标行：用 Obsidian 自带 MarkdownRenderer 完整渲染富文本。 */
   renderInactiveLine(row, src) {
+    this.clearCodeFlags(row);
     row.classList.remove("is-active");
     HEADING_CLASSES.concat(["lp-quote", "lp-bullet", "lp-ordered"]).forEach(
       (c) => row.classList.remove(c)
@@ -2625,6 +2748,7 @@ var LivePreviewEditor = class {
    * 因而光标偏移映射完全不受影响。
    */
   renderActiveLine(row, src) {
+    this.clearCodeFlags(row);
     if (row.classList.contains("is-rendered")) {
       row.classList.remove("is-rendered");
       delete row.dataset.src;
@@ -3664,10 +3788,24 @@ ${next}. `);
   toggleSidebar(open) {
     this.contentEl.toggleClass("muse-sidebar-open", open);
   }
+  memoKey(memo) {
+    return `${memo.file.path}#${memo.range[0]}`;
+  }
+  /** 编辑态高亮：仅当前 editingMemo 对应的卡片加 is-editing（列表不会因进入/退出编辑而重绘，
+   *  故在此手动切换；memo 为 null 时清除全部）。 */
+  setEditingCardHighlight(memo) {
+    this.contentEl.findAll(".muse-card").forEach((c) => {
+      const el = c;
+      const match = memo != null && el.getAttribute("data-memo-key") === this.memoKey(memo);
+      el.toggleClass("is-editing", match);
+    });
+  }
   enterEditMode(memo) {
-    if (this.editor.getValue().trim())
+    if (!this.editingMemo && this.editor.getValue().trim()) {
       this.saveDraft(this.editor.getValue());
+    }
     this.editingMemo = memo;
+    this.setEditingCardHighlight(memo);
     this.editor.setValue(memo.content);
     if (this.editDateTimeEl)
       this.editDateTimeEl.value = `${memo.date}T${memo.time}`;
@@ -3678,6 +3816,7 @@ ${next}. `);
   }
   exitEditMode() {
     this.editingMemo = null;
+    this.setEditingCardHighlight(null);
     this.editor.setValue(this.loadDraft());
     if (this.editDateTimeEl)
       this.editDateTimeEl.value = "";
@@ -4559,7 +4698,8 @@ ${next}. `);
   renderMemoCard(host, memo) {
     const mood = this.plugin.settings.enableMoodColoring ? this.detectMood(memo.content) : null;
     const card = host.createDiv({
-      cls: "muse-card" + (mood ? ` muse-mood-${mood}` : "") + (memo.isPinned ? " is-pinned" : "") + (memo.isStarred ? " is-starred" : "") + (this.editingMemo === memo ? " is-editing" : "")
+      cls: "muse-card" + (mood ? ` muse-mood-${mood}` : "") + (memo.isPinned ? " is-pinned" : "") + (memo.isStarred ? " is-starred" : "") + (this.editingMemo === memo ? " is-editing" : ""),
+      attr: { "data-memo-key": this.memoKey(memo) }
     });
     card.addEventListener("dblclick", (e) => {
       const tgt = e.target;

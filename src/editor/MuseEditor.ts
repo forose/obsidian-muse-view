@@ -225,29 +225,43 @@ export class LivePreviewEditor implements MuseEditor {
     //   因此光标行优先读 live DOM（按 trim 判真），仅在 DOM 为空时回退到 source 兜底。
     //   彻底杜绝「明明有内容却取到空」导致的「输入框被识别为空」问题。
     const rows = this.lineEls();
-    return rows
-      .map((row, i) => {
-        if (row.classList.contains("is-rendered")) {
-          const ds = (row.dataset as any).src;
-          // 安全网：若渲染行 dataset.src 为空（旧空值残留）但 DOM 已有内容，
-          // 说明用户在该行直接键入（异步窗口内尚未切活跃态）→ 以 DOM 真值为准，
-          // 避免「有内容却取到空 / 占位符残留（看起来没识别到内容）」。
-          if (!ds) {
-            const dom = (row.textContent ?? "").trim();
-            if (dom) return dom;
+    const parts: string[] = [];
+    rows.forEach((row, i) => {
+      // 代码块内侧被隐藏的行：其源码已含在起始行的 joined src 中，跳过避免重复。
+      if ((row.dataset as any).codeHidden) return;
+      if (row.classList.contains("is-code-block")) {
+        // 整段围栏代码块的源码（含换行），由起始行持有。
+        parts.push((row.dataset as any).src ?? "");
+        return;
+      }
+      if (row.classList.contains("is-rendered")) {
+        const ds = (row.dataset as any).src;
+        // 安全网：若渲染行 dataset.src 为空（旧空值残留）但 DOM 已有内容，
+        // 说明用户在该行直接键入（异步窗口内尚未切活跃态）→ 以 DOM 真值为准，
+        // 避免「有内容却取到空 / 占位符残留（看起来没识别到内容）」。
+        if (!ds) {
+          const dom = (row.textContent ?? "").trim();
+          if (dom) {
+            parts.push(dom);
+            return;
           }
-          return ds ?? this.source[i] ?? "";
         }
+        parts.push(ds ?? this.source[i] ?? "");
+      } else {
         const dom = row.textContent ?? "";
-        if (dom.trim()) return dom;
-        return this.source[i] ?? "";
-      })
-      .join("\n");
+        if (dom.trim()) parts.push(dom);
+        else parts.push(this.source[i] ?? "");
+      }
+    });
+    return parts.join("\n");
   }
   setValue(v: string): void {
     this.component.unload();
     this.component = new Component();
     this.component.load();
+    // 重置瞬时编辑态，避免跨次 setValue（如连续编辑两张卡）残留全选源码模式等标记。
+    this.allSource = false;
+    this.composing = false;
     this.el.empty();
     this.source = v.length ? v.split("\n") : [""];
     this.source.forEach((s) => {
@@ -426,18 +440,32 @@ export class LivePreviewEditor implements MuseEditor {
       rows[live].classList.add("is-active");
       delete (rows[live].dataset as any).src;
     }
-    this.source = rows.map((row, i) => {
-      if (i === live || row.classList.contains("is-active")) {
-        return (row.textContent ?? "").replace(/\n$/, "");
+    this.source = [];
+    rows.forEach((row, i) => {
+      // 代码块内侧隐藏行：其源码已含在起始行的 joined src 中，跳过避免重复 / 破坏行数。
+      if ((row.dataset as any).codeHidden) return;
+      if (row.classList.contains("is-code-block") || (row.dataset as any).codeBlock === "start") {
+        const joined = (row.dataset as any).src ?? "";
+        joined.split("\n").forEach((l: string) => this.source.push(l));
+        return;
       }
-      return (row.dataset as any).src ?? "";
+      if (i === live || row.classList.contains("is-active")) {
+        this.source.push((row.textContent ?? "").replace(/\n$/, ""));
+      } else {
+        this.source.push((row.dataset as any).src ?? "");
+      }
     });
     this.cursorRow = live;
     // 全部清空 → 归一化为「单行空 + 光标落首行」。
     // 否则浏览器在全选删除后会残留多个空行 div、且光标可能落在中间/末尾行，
     // 用户随后输入的内容会落在某一行、上方留若干空白行（→「内容显示在占位符下方」）；
     // 同时占位符（absolute 定位在容器顶部）与真实输入视觉叠加，看起来「没识别到内容」。
-    if (this.source.length > 1 && this.source.every((s) => !s.trim())) {
+    // 代码块存在时不归一化，避免破坏整段代码块结构。
+    if (
+      !rows.some((r) => r.classList.contains("is-code-block")) &&
+      this.source.length > 1 &&
+      this.source.every((s) => !s.trim())
+    ) {
       this.source = [""];
       for (let k = rows.length - 1; k >= 1; k--) rows[k].remove();
       const first = rows[0];
@@ -547,42 +575,97 @@ export class LivePreviewEditor implements MuseEditor {
     this.el.toggleClass("is-empty", empty);
   }
 
-  /** 统一渲染：光标行做「源码 + 样式」，其余行做完整 markdown 渲染。 */
+  /** 统一渲染：光标行做「源码 + 样式」，其余行做完整 markdown 渲染。
+   *  围栏代码块（``` / ~~~）跨多行，逐行渲染会把上下两个围栏各自变成带复制按钮的
+   *  空代码块。因此检测代码块区间：光标在块外时整段渲染为单个代码块（内侧行隐藏）；
+   *  光标在块内时整段以源码 / 字面文本显示，便于编辑且不出现复制按钮。 */
   private renderLines(): void {
     const rows = this.lineEls();
     const cur = Math.max(0, Math.min(this.cursorRow, rows.length - 1));
+    const spans = this.getFenceSpans(this.source);
+    const spanOf: number[] = this.source.map(() => -1);
+    spans.forEach((sp) => {
+      for (let i = sp.start; i <= sp.end; i++) spanOf[i] = spans.indexOf(sp);
+    });
+    const cursorInSpan = spanOf[cur] >= 0;
+
     // 保住当前滚动位置：跨行渲染会拆除/重建 MarkdownRenderer 组件，内容瞬时塌陷会让
     // 浏览器把 scrollTop 钳到 0，表现为"换行时光标/视图跳到最前面"。先记下，渲染后还原。
     const prevScroll = this.el.scrollTop;
-    // 先预判是否有行真正需要重渲染；没有则跳过 unload/reload，避免无谓清空导致滚动跳动。
+    // 存在代码块时结构依赖光标相对块的位置，每次都整段重建更稳妥；否则沿用轻量预判。
+    const forceFull = spans.length > 0;
     let needRender = false;
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const src = this.source[i] ?? "";
-      // 全选源码模式：任何「渲染态」行都要切回活跃态（源码 + 样式）。
-      if (this.allSource && row.classList.contains("is-rendered")) {
-        needRender = true;
-        break;
+    if (!forceFull) {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const src = this.source[i] ?? "";
+        // 全选源码模式：任何「渲染态」行都要切回活跃态（源码 + 样式）。
+        if (this.allSource && row.classList.contains("is-rendered")) {
+          needRender = true;
+          break;
+        }
+        if (i === cur) {
+          if (row.classList.contains("is-rendered")) needRender = true;
+          else if ((row.dataset as any).activeSrc !== src) needRender = true;
+        } else if (
+          !row.classList.contains("is-rendered") ||
+          (row.dataset as any).src !== src
+        ) {
+          needRender = true;
+        }
+        if (needRender) break;
       }
-      if (i === cur) {
-        if (row.classList.contains("is-rendered")) needRender = true;
-        else if ((row.dataset as any).activeSrc !== src) needRender = true;
-      } else if (!row.classList.contains("is-rendered") || row.dataset.src !== src) {
-        needRender = true;
-      }
-      if (needRender) break;
     }
-    if (needRender) {
+    if (forceFull || needRender) {
       this.component.unload();
       this.component = new Component();
       this.component.load();
     }
-    rows.forEach((row, i) => {
+    let i = 0;
+    while (i < rows.length) {
+      const row = rows[i];
       const src = this.source[i] ?? "";
+      if (spanOf[i] >= 0) {
+        const sp = spans[spanOf[i]];
+        if (cursorInSpan) {
+          // 光标在块内：整段以源码 / 字面文本显示，避免逐行渲染出空代码块与复制按钮。
+          for (let k = sp.start; k <= sp.end; k++) {
+            const r = rows[k];
+            const s = this.source[k] ?? "";
+            if (k === cur) {
+              this.clearCodeFlags(r);
+              r.classList.remove("is-rendered");
+              r.classList.add("is-active", "is-code-line");
+              if ((r.dataset as any).activeSrc !== s) {
+                r.textContent = s;
+                (r.dataset as any).activeSrc = s;
+              }
+            } else {
+              this.renderLiteralLine(r, s);
+            }
+          }
+          i = sp.end + 1;
+          continue;
+        }
+        // 光标在块外：整段渲染为单个代码块，内侧行隐藏。
+        const joined = this.source.slice(sp.start, sp.end + 1).join("\n");
+        this.renderCodeBlock(rows[sp.start], joined);
+        for (let k = sp.start + 1; k <= sp.end; k++) {
+          const r = rows[k];
+          r.classList.remove("is-rendered", "is-active", "is-code-block", "is-code-line");
+          r.classList.add("is-code-hidden");
+          (r.dataset as any).codeHidden = "1";
+          (r.dataset as any).src = this.source[k] ?? "";
+          r.innerHTML = "";
+        }
+        i = sp.end + 1;
+        continue;
+      }
       // 全选源码模式：所有行都按「源码 + 样式」渲染（显示 markdown 语法并保留排版样式）。
       if (this.allSource || i === cur) this.renderActiveLine(row, src);
       else this.renderInactiveLine(row, src);
-    });
+      i++;
+    }
     this.updateEmpty();
     // 还原滚动位置（同步），并对异步渲染的行再兜底一次（下一帧），彻底杜绝跳顶。
     this.el.scrollTop = prevScroll;
@@ -593,8 +676,61 @@ export class LivePreviewEditor implements MuseEditor {
     });
   }
 
+  /** 检测 source 中的围栏代码块区间（``` 或 ~~~ 起，到同字符围栏止；未闭合则延到末尾）。 */
+  private getFenceSpans(src: string[]): { start: number; end: number }[] {
+    const spans: { start: number; end: number }[] = [];
+    let i = 0;
+    while (i < src.length) {
+      const open = src[i].match(/^(```|~~~)/);
+      if (open) {
+        const marker = open[1][0];
+        const closing = new RegExp("^" + marker + "+\\s*$");
+        let end = -1;
+        for (let j = i + 1; j < src.length; j++) {
+          if (closing.test(src[j])) {
+            end = j;
+            break;
+          }
+        }
+        if (end === -1) end = src.length - 1;
+        spans.push({ start: i, end });
+        i = end + 1;
+      } else {
+        i++;
+      }
+    }
+    return spans;
+  }
+
+  private clearCodeFlags(row: HTMLElement): void {
+    row.classList.remove("is-code-block", "is-code-hidden", "is-code-line");
+    delete (row.dataset as any).codeBlock;
+    delete (row.dataset as any).codeHidden;
+  }
+
+  /** 把整段围栏代码块渲染为单个代码块（MarkdownRenderer 产出完整 <pre><code>）。 */
+  private renderCodeBlock(row: HTMLElement, joinedSrc: string): void {
+    this.clearCodeFlags(row);
+    row.classList.add("is-code-block");
+    (row.dataset as any).codeBlock = "start";
+    (row.dataset as any).src = joinedSrc;
+    row.innerHTML = "";
+    MarkdownRenderer.render(this.app, joinedSrc, row, this.sourcePath, this.component);
+  }
+
+  /** 代码块内的非激活行：以字面文本显示（保留 ``` 围栏与代码内容，不触发独立代码块/复制按钮）。 */
+  private renderLiteralLine(row: HTMLElement, src: string): void {
+    this.clearCodeFlags(row);
+    row.classList.add("is-code-line");
+    delete (row.dataset as any).activeSrc;
+    if ((row.dataset as any).src === src && row.textContent === src) return;
+    row.textContent = src;
+    (row.dataset as any).src = src;
+  }
+
   /** 非光标行：用 Obsidian 自带 MarkdownRenderer 完整渲染富文本。 */
   private renderInactiveLine(row: HTMLElement, src: string): void {
+    this.clearCodeFlags(row);
     row.classList.remove("is-active");
     HEADING_CLASSES.concat(["lp-quote", "lp-bullet", "lp-ordered"]).forEach(
       (c) => row.classList.remove(c)
@@ -620,6 +756,7 @@ export class LivePreviewEditor implements MuseEditor {
    * 因而光标偏移映射完全不受影响。
    */
   private renderActiveLine(row: HTMLElement, src: string): void {
+    this.clearCodeFlags(row);
     if (row.classList.contains("is-rendered")) {
       row.classList.remove("is-rendered");
       delete (row.dataset as any).src;
