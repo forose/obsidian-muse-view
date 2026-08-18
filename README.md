@@ -1,9 +1,9 @@
-# MuseView（标准 Obsidian 插件工程）
+# MuseView
 
 MuseView 是一个碎片笔记风格的 Obsidian 插件，采用标准 TypeScript 插件写法实现，
 界面交互清晰、源码结构可读、便于扩展。
 
-## 已实现（核心）
+## 已实现
 
 - **存储模型**：每条 memo 对应 vault 内的一个 Markdown 文件 `<folder>/<id>.md`，
   元数据（创建/修改时间、置顶、星标）写入 frontmatter 的 `muse` 字段，正文为纯文本、
@@ -22,18 +22,6 @@ MuseView 是一个碎片笔记风格的 Obsidian 插件，采用标准 TypeScrip
 - **i18n**（`src/i18n.ts`）：中/英，跟随 Obsidian 语言或手动指定。
 - **命令 / ribbon**：打开视图、快速记录（聚焦输入框）。
 
-## 规划中（Roadmap，核心版尚未包含）
-
-以下功能已进入设计、部分预留了同名设置字段，可在现有 `store.ts` / `MuseView.ts`
-基础上继续扩展：
-
-- 热力图 / 月历切换
-- 独立统计报告页
-- 智能回顾
-- 心情着色
-- 图片九宫格（核心版已可通过原生 Markdown 渲染 `![[图片]]` 直接呈现单图）
-- 每日文件绑定（bindFile）
-- 导出
 
 ## 目录结构
 
