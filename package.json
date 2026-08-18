@@ -1,0 +1,27 @@
+{
+  "name": "obsidian-muse-view",
+  "version": "2.1.2",
+  "description": "Waterfall-style memo plugin for flomo-like fleeting thoughts, stored as plain Markdown.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "package": "node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "memo",
+    "flomo",
+    "muse-view"
+  ],
+  "author": "forose",
+  "authorUrl": "https://github.com/forose/obsidian-muse-view",
+  "license": "MIT",
+  "devDependencies": {
+    "builtin-modules": "^3.3.0",
+    "obsidian": "^1.4.0",
+    "typescript": "^5.4.5",
+    "esbuild": "^0.20.2"
+  }
+}

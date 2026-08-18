@@ -1,0 +1,11 @@
+{
+  "id": "muse-view",
+  "name": "Muse View",
+  "version": "2.1.2",
+  "minAppVersion": "1.4.0",
+  "description": "Waterfall-style memo plugin for flomo-like fleeting thoughts, stored as plain Markdown.",
+  "author": "forose",
+  "authorUrl": "https://github.com/forose/obsidian-muse-view",
+  "fundingUrl": "https://github.com/forose/obsidian-muse-view",
+  "isDesktopOnly": false
+}

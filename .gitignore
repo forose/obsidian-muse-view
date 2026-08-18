@@ -1,0 +1,21 @@
+# vscode
+.*/
+
+# Intellij
+*.iml
+.idea
+
+# npm
+node_modules
+package-lock.json
+
+# build artifacts
+main.js.map
+*.js.map
+
+# obsidian
+data.json
+
+# misc
+.DS_Store
+

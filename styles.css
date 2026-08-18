@@ -1,0 +1,3948 @@
+/* ================================================================
+ * MuseView 样式（完全基于 Obsidian CSS 变量，自动跟随主题）
+ * ================================================================ */
+
+/* ============== 重置：清除 Obsidian 默认 button 样式 ==============
+ * Obsidian 主题给所有 <button> 加了背景+边框+内边距，
+ * 我们的图标按钮需要强制干净的"裸样式"
+ */
+.muse-root button.muse-icon-btn,
+.muse-root button.muse-tool-btn,
+.muse-root button.muse-edit-cancel,
+.muse-root button.muse-meta-btn,
+.muse-root button.muse-submit-btn {
+  box-shadow: none;
+  /* 关键：覆盖 Obsidian 默认按钮的背景边框 */
+}
+.muse-root button.muse-icon-btn,
+.muse-root button.muse-tool-btn {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 让视图的 contentEl 填满整个面板，清除 Obsidian 默认 padding */
+.workspace-leaf-content[data-type="muse-view"] .view-content {
+  padding: 0 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-primary) !important;
+}
+
+.muse-root,
+.muse-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 14px;
+  color: var(--text-normal);
+}
+
+/* ================== 整体结构 ================== */
+.muse-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ================== 左侧栏 ================== */
+.muse-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 16px 10px 24px;
+  border-right: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+/* 统计条 */
+.muse-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4px 4px 14px;
+  position: relative;
+}
+.muse-stat {
+  text-align: center;
+  flex: 1;
+}
+.muse-stat-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.muse-stat-label {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  letter-spacing: 0.4px;
+}
+/* 视图切换按钮：贴在统计条右侧 */
+.muse-stats-switch {
+  flex: 0 0 auto !important;
+  width: 28px;
+  height: 28px;
+  padding: 4px !important;
+  margin-left: 4px;
+  color: var(--text-faint);
+  align-self: center;
+}
+.muse-stats-switch:hover {
+  color: var(--interactive-accent) !important;
+}
+
+/* 热力图 */
+.muse-heatmap {
+  display: flex;
+  gap: 3px;
+  padding: 8px 6px 8px;
+  /* v1.4.1: 去掉底部灰线，由下方的进度条提供"分隔感" */
+}
+.muse-heatmap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.muse-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  min-height: 8px;
+  transition: transform 0.08s;
+}
+.muse-heatmap-cell:hover {
+  transform: scale(1.35);
+}
+.muse-heatmap-cell.level-0 {
+  background: var(--background-modifier-border);
+  opacity: 0.45;
+}
+.muse-heatmap-cell.level-1 {
+  background: var(--interactive-accent);
+  opacity: 0.3;
+}
+.muse-heatmap-cell.level-2 {
+  background: var(--interactive-accent);
+  opacity: 0.55;
+}
+.muse-heatmap-cell.level-3 {
+  background: var(--interactive-accent);
+  opacity: 0.8;
+}
+.muse-heatmap-cell.level-4 {
+  background: var(--interactive-accent);
+  opacity: 1;
+}
+.muse-heatmap-cell.future {
+  opacity: 0.15 !important;
+}
+
+/* 侧栏分区标题 */
+.muse-sidebar-section {
+  padding: 14px 12px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+/* 侧栏小提示 */
+.muse-sidebar-hint {
+  margin: 14px 12px 0;
+  padding: 10px 12px;
+  background: var(--background-modifier-hover);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-faint);
+}
+.muse-sidebar-hint code {
+  padding: 1px 5px;
+  background: var(--background-primary);
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--text-accent);
+}
+.muse-sidebar-hint b {
+  color: var(--text-muted);
+}
+
+/* 侧栏导航项 */
+.muse-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  margin: 1px 2px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.12s, color 0.12s;
+}
+.muse-nav-item:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.muse-nav-item.active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: 500;
+}
+.muse-nav-item.active .muse-nav-count {
+  color: var(--text-on-accent);
+  opacity: 0.85;
+}
+.muse-nav-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  font-size: 13px;
+}
+.muse-nav-icon .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+.muse-nav-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muse-nav-count {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.muse-tag-item .muse-nav-icon {
+  color: var(--text-accent);
+  opacity: 0.7;
+}
+
+/* ================== 右主区 ================== */
+.muse-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 22px 0 10px;
+  /* 与输入卡 .muse-input-card 同色——输入卡和 .muse-list 之间
+   * 有 16px margin-bottom + 18px padding-top ≈ 34px 的空隙，如果不显式
+   * 补背景，会透到 view-content 底色与输入卡边缘对不齐，看起来像"裂了一道缝"。 */
+  background: var(--background-primary);
+}
+
+/* 顶部 bar */
+.muse-topbar {
+  display: flex;
+  align-items: center;
+  /* v1.4.5: 去掉 justify-content: space-between
+   *   旧版 topbar 是 3 段式（title | search | toggle），space-between 天然好使；
+   *   v1.4.5 新增 topbar-tools 变成 4 段后，space-between 会把所有子元素均匀分布，
+   *   导致搜索框跑到中间去。
+   *   改用"title 靠左 + search-wrap 用 margin-left:auto 把自己和后续 tools/toggle 整体推到右边"。
+   */
+  gap: 8px;
+  padding: 12px 24px;
+  flex-shrink: 0;
+  background: var(--background-primary);
+}
+/* v1.4.5: 让搜索框这组元素贴右边 */
+.muse-topbar .muse-search-wrap {
+  margin-left: auto;
+}
+.muse-topbar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-normal);
+}
+.muse-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--interactive-accent);
+}
+.muse-logo .svg-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
+.muse-brand {
+  letter-spacing: 0.3px;
+}
+.muse-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 0 8px 0 12px;
+  transition: border-color 0.15s;
+}
+.muse-search-wrap:focus-within {
+  border-color: var(--interactive-accent);
+}
+.muse-search-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+}
+.muse-search-icon .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+.muse-search {
+  width: 200px;
+  padding: 6px 4px;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-normal);
+  font-size: 13px;
+  outline: none !important;
+}
+.muse-search:focus,
+.muse-search:hover,
+.muse-search:active {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.muse-icon-btn {
+  padding: 4px 8px;
+  border: none !important;
+  background: transparent !important;
+  /* v1.4.9: 颜色从 --text-muted 降到 --text-faint，整体界面更柔和、不突兀。
+   *   与打卡条靶心/视图切换、侧栏活跃度切换按钮同一色阶，全局视觉统一。 */
+  color: var(--text-faint);
+  cursor: pointer;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  box-shadow: none !important;
+}
+.muse-icon-btn:hover {
+  background: var(--background-modifier-hover) !important;
+  /* v1.4.9: hover 改为 accent 色，与打卡条和切换按钮的 hover 行为一致，
+   *   给"这个东西可点击"的强反馈，代替原来变 --text-normal 的弱反馈。 */
+  color: var(--interactive-accent) !important;
+}
+.muse-icon-btn .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* v1.1.2: 刷新按钮点击后转圈动画 */
+.muse-icon-btn.is-spinning {
+  pointer-events: none;
+  opacity: 0.8;
+}
+.muse-icon-btn.is-spinning .svg-icon {
+  animation: muse-spin 0.8s linear infinite;
+}
+@keyframes muse-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 输入卡片 */
+.muse-input-card {
+  margin: 16px 24px 0;
+  padding: 14px 16px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  background: var(--background-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+  /* v1.4.4: 输入卡建立独立的层叠上下文，并抬高到 z-index:2。
+   *   原因：:focus-within 激活后的 3px accent 光晕 box-shadow 会向外扩散，
+   *   如果输入卡没有独立层级，扩散到的区域会被相邻的 .muse-list 里
+   *   带不透明背景的笔记卡片覆盖掉（移动端输入卡贴底、手指滚动时尤其明显）。
+   *   给它一个高于卡片的 z-index 即可让光晕始终"浮"在笔记之上。 */
+  position: relative;
+  z-index: 2;
+}
+.muse-input-card:focus-within {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+}
+
+/* v2.0.17: 输入卡片"渐进式披露"动画
+ * ---------------------------------------------------------
+ * 设计目标：默认收起（textarea 矮 + 工具栏淡化），鼠标 hover 或聚焦时
+ *   优雅展开。让阅读区获得更多垂直空间，对齐 flomo 网页端体验。
+ *
+ * 展开态触发条件（任一即展开）：
+ *   1. .is-focused      - 输入框获焦点（点击或 Tab 进入），桌面/移动端通用主入口
+ *   2. .has-content     - 输入框有内容（草稿/插入的标签等）→ 写一半切去看笔记不会塌下去
+ *   3. .is-editing      - 进入编辑某条 memo 的模式
+ *   4. .dragging        - 正在拖拽图片到输入框
+ *
+ *   不用 hover 触发：鼠标在笔记列表/工具栏间穿梭经常路过输入框，hover 会带来视觉噪音；
+ *   点击 = 明确写作意图，hover = 只是路过，两者不应同等对待。
+ *
+ * 默认收起态视觉规则：
+ *   - textarea min-height 收紧到 40px（约 1 行 + 余量）
+ *   - 工具栏图标整体 opacity 0.55，呈"灰灰的"低存在感
+ *   - 发送按钮 opacity 0.7 + saturate 0.7（淡绿色，告诉用户它存在但当前不需要关注）
+ *   - 顶部分隔线（toolbar border-top）也跟着淡化
+ *
+ * 展开态：所有规则恢复正常值（即原 v2.0.16 及之前的视觉表现）
+ *
+ * transition 时长 0.7s + Material Design 标准缓动曲线 cubic-bezier(0.4, 0, 0.2, 1)，
+ *   兼顾"看得出动画"和"不拖沓"。
+ *   配合 JS 的 150ms 鼠标驻留检测（防快速掠过误触发）和帧间 class 切换
+ *   （绕过 Chromium 对 textarea :hover 伪类的 transition 短路 bug）。
+ */
+.muse-input-card {
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.muse-input {
+  /* v2.0.17: 渐进式披露 —— 收起态 40px ↔ 展开态 96px 的过渡。
+   *   使用 Material Design 标准缓动曲线，前段稍慢、后段顺滑收尾，丝滑悠闲感。
+   *   同时覆盖 min-height + height：
+   *     - min-height 负责收起/展开两档的视觉目标值
+   *     - height 也要挂 transition，否则 min-height 变化时浏览器对 textarea 的高度重算是
+   *       瞬时完成的（不跟随 min-height 过渡）。这是 textarea 特有的行为。
+   *   为避免 JS autoResizeInput 设置 inline height 时触发慢动画，打字阶段 JS 会在
+   *   设置前临时禁用 transition（transitions-none class，见下方）。
+   *   v2.0.17-iter12: !important —— Obsidian 主题（如 ITS Theme / AnuPpuccin 等）
+   *     会用 `textarea { transition: box-shadow ... }` 这种基础 type 选择器
+   *     覆盖我们的 transition（实测权重比 .muse-input 高，因为主题用了
+   *     `body.theme-light textarea` 这种链式选择器，权重 0,0,1,1 > 0,0,1,0）。
+   *     不加 !important 时 getComputedStyle 显示 transition 变成主题的
+   *     `box-shadow, border 0.15s`，min-height 0s 就触发瞬时跳变。
+   *   v2.0.17-iter13: 时长 1.1s → 0.7s，看得出动画但不拖沓。
+   */
+  transition:
+    min-height 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.7s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+/* v2.0.17: 输入时（input 事件触发 autoResizeInput）临时禁用动画，
+ *   避免 textarea 随内容长高时被 0.7s 慢动画拖住手感。
+ *   JS 会在设 inline height 前加这个 class，一帧后移除。 */
+.muse-input.muse-no-transition {
+  transition: none !important;
+}
+.muse-lp.muse-no-transition {
+  transition: none !important;
+}
+.muse-input-toolbar {
+  /* v2.0.17: 工具栏整体淡入淡出 */
+  transition:
+    opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    border-top-color 0.7s ease;
+}
+.muse-submit-btn {
+  /* v2.0.17: 发送按钮饱和度淡入 */
+  transition:
+    background 0.12s,
+    filter 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 收起态（默认）—— textarea 收矮 + 工具栏淡化 + 发送按钮褪色
+ * v2.0.17-final: 仅在用户**主动点击**输入框（focus）时展开，hover 不触发。
+ *   设计理由：鼠标在笔记列表 ↔ 工具栏间穿梭经常路过输入框，hover 会带来大量
+ *   视觉噪音；点击 = 明确写作意图，hover = 只是路过，两者不应同等对待。
+ *   桌面和移动端体验也因此完全一致（移动端本来就没有 hover 概念）。
+ *
+ *   不用 :focus-within 伪类的原因：Chromium 对 textarea 在伪类驱动下的
+ *   transition 有 bug（动画只跑 30% 路程就跳到终点），换成 JS class
+ *   .is-focused（focus/blur 事件触发）能让 0.7s transition 完整走完。
+ */
+.muse-input-card:not(.is-focused):not(.has-content):not(.is-editing):not(.dragging) .muse-input,
+.muse-input-card:not(.is-focused):not(.has-content):not(.is-editing):not(.dragging) .muse-lp {
+  min-height: 40px;
+}
+.muse-input-card:not(.is-focused):not(.has-content):not(.is-editing):not(.dragging) .muse-input-toolbar {
+  opacity: 0.55;
+  border-top-color: color-mix(in srgb, var(--background-modifier-border) 50%, transparent);
+}
+.muse-input-card:not(.is-focused):not(.has-content):not(.is-editing):not(.dragging) .muse-submit-btn {
+  opacity: 0.7;
+  filter: saturate(0.7);
+}
+
+.muse-input {
+  width: 100%;
+  /* v1.1.18: box-sizing 必须显式声明为 border-box，
+   *   否则 width:100% + Obsidian/主题给 textarea 的隐式 border inset
+   *   会让实际内容区略微溢出父容器，iOS WebView 下表现为"placeholder
+   *   首字符被左边裁掉一半"。 */
+  box-sizing: border-box;
+  /* v1.1.18: 彻底清除浏览器对 textarea 的原生外观
+   *   iOS Safari / Android WebView 默认 `-webkit-appearance: textarea`
+   *   会引入 2-3px 的 inset padding，placeholder 第一个字符看起来
+   *   被"前一层东西"挡住一半，实际是原生外观的凹陷边。
+   *   PC 端 Electron 用的是 Chromium，同样的规则但桌面端父容器足够宽
+   *   + 字号较小不容易看出来；手机上字大、空间小就明显了。 */
+  -webkit-appearance: none;
+  appearance: none;
+  /* v2.0.17: min-height 由 96px 起步（比 v2.0.16 的 72px 多一行视觉缓冲），
+   *   收起态会被下方 :not(:hover):not(:focus-within)... 规则覆盖到 40px */
+  min-height: 96px;
+  /* v1.1.8: max-height 用 vh 自适应，避免小屏上输入框撑满整个视口 */
+  max-height: 40vh;
+  padding: 0 !important;
+  margin: 0;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-normal);
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.6;
+  /* v1.1.8: 关掉浏览器原生 resize 拉手，高度由 JS 动态控制；超出 max-height 才出现滚动条 */
+  resize: none;
+  outline: none !important;
+  overflow-y: auto;
+  /* v2.0.17: 原 `transition: height 0.08s ease` 已移到上方的 .muse-input 规则块里，
+   *   并改为 min-height + height 0.7s（渐进式披露动画）。如果这里再声明 transition，会把
+   *   上方的新规则覆盖掉 —— 这就是当时动画不生效的直接原因。
+   */
+}
+.muse-input:focus,
+.muse-input:hover,
+.muse-input:active {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.muse-input::placeholder {
+  color: var(--text-faint);
+}
+.muse-input.dragging {
+  background: var(--background-modifier-hover) !important;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px var(--interactive-accent) !important;
+}
+.muse-input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.muse-input-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.muse-tool-btn {
+  padding: 4px 8px;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  box-shadow: none !important;
+}
+.muse-tool-btn:hover {
+  background: var(--background-modifier-hover) !important;
+  color: var(--text-normal);
+}
+.muse-tool-btn .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+.muse-input-hint {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.muse-submit-btn {
+  padding: 5px 18px;
+  border: none !important;
+  /* v1.4.2: 用主题 accent 色 + !important 对抗某些主题对 button 的全局背景覆盖 */
+  background: var(--interactive-accent) !important;
+  color: var(--text-on-accent) !important;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s, filter 0.12s;
+  box-shadow: none !important;
+}
+.muse-submit-btn:hover {
+  background: var(--interactive-accent-hover) !important;
+  /* 有些主题没定义 --interactive-accent-hover，fallback 用 filter 做微变亮 */
+  filter: brightness(1.05);
+}
+
+/* ================== 列表 ================== */
+.muse-list {
+  flex: 1;
+  overflow-y: auto;
+  /* 顶部留少量间距（热力图是首个子元素，自然与输入卡隔开）；
+   * 底部留 64px 让最后一张卡片不被贴底。 */
+  padding: 8px 24px 64px;
+  /* 显式补底色：滚动时卡片与边缘之间不再透出 view-content 底色。 */
+  background: var(--background-primary);
+}
+
+/* ================== 主区域 mini 热力图 ==================
+ * 作为列表滚动容器的首个子元素渲染，向上滚动时随内容一起滚走。
+ * 综合 Gitee 贡献度风格：
+ *  - 顶部统计行（最近一年贡献 / 最长连续 / 最近连续 / 共 N 条）+ 少/多图例
+ *  - 52 列 × 7 行（一年）绿系配色，今天双环描边，未来透明
+ */
+.muse-list-heatmap {
+  background: var(--background-primary);
+  /* 横向不再单独加 padding（list 已提供 24px 页边），仅留上下间距与卡片分隔。 */
+  padding: 0 0 12px;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* 标题 + 图例 */
+.muse-list-heatmap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+/* 固定头部：位于滚动容器之外，向上滚动时始终可见、不随内容一起滚走。
+ * 横向 padding 与 listEl 的 24px 页边对齐，底色与主区域一致，避免透缝。 */
+.muse-list-heatmap-head-fixed {
+  padding: 8px 24px 2px;
+  background: var(--background-primary);
+}
+.muse-list-heatmap-head-fixed.is-empty {
+  display: none;
+}
+.muse-list-heatmap-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.muse-list-heatmap-legend-text {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.muse-list-heatmap-legend-cell {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  cursor: default;
+}
+/* legend 5 档绿系配色（与主图 cell 配色一致，专属类不挂 muse-heatmap-cell
+ * 避免被 width:100% 撑成大方块）。 */
+.muse-list-heatmap-legend-cell.level-0 {
+  background: var(--background-modifier-border);
+  opacity: 0.4;
+}
+.muse-list-heatmap-legend-cell.level-1 {
+  background: #9be08f;
+}
+.muse-list-heatmap-legend-cell.level-2 {
+  background: #40c463;
+}
+.muse-list-heatmap-legend-cell.level-3 {
+  background: #30a14e;
+}
+.muse-list-heatmap-legend-cell.level-4 {
+  background: #216e39;
+}
+
+/* 月份行 / 星期栏已移除（与下方 cell 跨列对齐在不同布局下易错位），
+ * 保留简洁：标题 + 图例 + 主体 + 统计。 */
+
+/* 绿系热力图（52 列 × 7 行，一年，横铺整个右侧） */
+.muse-list-heatmap .muse-heatmap {
+  gap: 2px;
+  padding: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.muse-list-heatmap .muse-heatmap-col {
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.muse-list-heatmap .muse-heatmap-cell {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  border-radius: 2px;
+}
+.muse-list-heatmap .muse-heatmap-cell:hover {
+  transform: scale(1.35);
+}
+/* 主图 cell 绿系配色（GitHub 经典 4 档绿 + level-0 灰底） */
+.muse-list-heatmap .muse-heatmap-cell.level-0 {
+  background: var(--background-modifier-border);
+  opacity: 0.4;
+}
+.muse-list-heatmap .muse-heatmap-cell.level-1 {
+  background: #9be08f;
+  opacity: 1;
+}
+.muse-list-heatmap .muse-heatmap-cell.level-2 {
+  background: #40c463;
+  opacity: 1;
+}
+.muse-list-heatmap .muse-heatmap-cell.level-3 {
+  background: #30a14e;
+  opacity: 1;
+}
+.muse-list-heatmap .muse-heatmap-cell.level-4 {
+  background: #216e39;
+  opacity: 1;
+}
+.muse-list-heatmap .muse-heatmap-cell.today {
+  /* 当日：双环 box-shadow 突出 */
+  box-shadow: 0 0 0 1px var(--background-primary),
+    0 0 0 2px #216e39;
+}
+.muse-list-heatmap .muse-heatmap-cell.future {
+  opacity: 0.15 !important;
+}
+
+/* 统计行：3 条短句，与 Gitee 风格一致 */
+.muse-list-heatmap-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+/* 右侧分组（最长连续 / 最近连续 / 最近一年贡献 + 操作按钮）：
+ * 整体靠右、单行不换行，与最左侧「共 N 条」用 space-between 拉开。 */
+.muse-list-heatmap-stats-right {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.muse-list-heatmap-stat {
+  line-height: 1.6;
+}
+.muse-list-heatmap-stat-num {
+  color: var(--text-normal);
+  font-weight: 600;
+  margin: 0 1px;
+}
+/* 「共 N 条」：当前筛选结果数，与全局统计同处一行，用胶囊略微强调。 */
+.muse-list-heatmap-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 9px;
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.muse-meta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.12s;
+}
+.muse-meta-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.muse-meta-btn .svg-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.muse-empty {
+  padding: 100px 24px 40px;
+  text-align: center;
+  color: var(--text-faint);
+}
+.muse-empty-emoji {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.muse-empty-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.muse-empty-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* 日期分组 */
+.muse-day-group {
+  margin-bottom: 28px;
+}
+.muse-day-head {
+  padding: 6px 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-accent);
+  letter-spacing: 0.3px;
+}
+
+/* 置顶专属分组 */
+.muse-pin-group {
+  margin-bottom: 24px;
+  border-radius: 10px;
+}
+.muse-pin-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 10px;
+  color: var(--interactive-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.muse-pin-head-icon {
+  display: inline-flex;
+  align-items: center;
+}
+.muse-pin-head-icon .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+/* 置顶分组内的卡片：去掉原本置顶卡片的背景色，因为整个组已经有背景了 */
+.muse-pin-group .muse-card.is-pinned {
+  background: var(--background-primary-alt, var(--background-secondary));
+  border-color: var(--background-modifier-border);
+}
+
+/* 卡片 */
+.muse-card {
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  background: var(--background-primary-alt, var(--background-secondary));
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.muse-card:hover {
+  border-color: var(--background-modifier-border-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.muse-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.muse-card-time-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.muse-card-pin,
+.muse-card-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.muse-card-pin .svg-icon,
+.muse-card-star .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+.muse-card-pin {
+  color: var(--interactive-accent);
+}
+.muse-card-star {
+  color: #e8b84a;
+}
+
+.muse-card-time {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+}
+.muse-card-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.muse-card:hover .muse-card-actions {
+  opacity: 1;
+}
+.muse-card-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-normal);
+  word-break: break-word;
+  /* 让折叠/展开按钮的 absolute 定位始终相对本元素，而非外层容器，
+     保证两态水平居中基准一致，避免左右跳动 */
+  position: relative;
+  /* 始终生效的高度过渡：展开/收起都靠 JS 控制 max-height 平滑变化，
+     避免 removeClass 时 max-height 直接变 none 导致高度瞬间撑开、按钮跳位 */
+  transition: max-height 180ms ease;
+}
+.muse-card-body > *:first-child {
+  margin-top: 0;
+}
+.muse-card-body > *:last-child {
+  margin-bottom: 0;
+}
+.muse-card-body p {
+  margin: 0.4em 0;
+}
+.muse-card-body ul,
+.muse-card-body ol {
+  margin: 0.4em 0;
+  padding-left: 1.4em;
+}
+.muse-card-body blockquote {
+  margin: 0.5em 0;
+  padding: 4px 12px;
+  border-left: 3px solid var(--interactive-accent);
+  background: var(--background-modifier-hover);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-muted);
+}
+/* 行内 code（文字里的 `xxx`）：胶囊背景；
+ * 注意用 :not(pre code) 排除代码块内部的 code，否则会破坏代码块整体感 */
+.muse-card-body :not(pre) > code {
+  padding: 1px 5px;
+  background: var(--background-modifier-hover);
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* 代码块 <pre>：跟随 Obsidian 原生外观（带背景和细边框） */
+.muse-card-body pre {
+  position: relative;
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: var(--code-background, var(--background-secondary));
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.muse-card-body pre > code {
+  /* 重置：代码块里的 code 不应该有行内 code 的胶囊样式 */
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: inherit;
+  color: var(--text-normal);
+  white-space: pre;
+  display: block;
+}
+
+/* Obsidian 原生代码块复制按钮：统一移到右上角（不同 Obsidian 版本 class 名不同，全部匹配） */
+.muse-card-body pre .copy-code-button,
+.muse-card-body pre > button,
+.muse-card-body pre .code-copy-button {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  left: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+  background: color-mix(in srgb, var(--background-modifier-hover) 80%, transparent) !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.muse-card-body pre:hover .copy-code-button,
+.muse-card-body pre:hover > button,
+.muse-card-body pre:hover .code-copy-button,
+.muse-card-body pre .copy-code-button:focus,
+.muse-card-body pre > button:focus,
+.muse-card-body pre .code-copy-button:focus {
+  opacity: 1;
+}
+
+.muse-card-body img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 0.5em 0;
+}
+
+/* ================== 图片九宫格 ================== */
+.muse-img-grid {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  max-width: 380px;
+}
+.muse-img-grid-1 {
+  grid-template-columns: 1fr;
+  max-width: 260px;
+}
+.muse-img-grid-1 .muse-img-cell {
+  aspect-ratio: auto;
+  max-height: 240px;
+}
+.muse-img-grid-1 .muse-img {
+  width: auto;
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  background: var(--background-modifier-hover);
+  border-radius: 8px;
+}
+.muse-img-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 260px;
+}
+.muse-img-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.muse-img-grid-4 {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 260px;
+}
+.muse-img-grid-5,
+.muse-img-grid-6,
+.muse-img-grid-7,
+.muse-img-grid-8,
+.muse-img-grid-9 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* 单元格：默认正方形 */
+.muse-img-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--background-modifier-hover);
+  cursor: zoom-in;
+  transition: opacity 0.15s;
+}
+.muse-img-cell:hover {
+  opacity: 0.92;
+}
+.muse-img-cell .muse-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+  border-radius: 0;
+}
+.muse-img-grid-1 .muse-img-cell {
+  cursor: zoom-in;
+  border-radius: 8px;
+  background: transparent;
+}
+
+/* +N 蒙版 */
+.muse-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ================== Lightbox ================== */
+.muse-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+.muse-lightbox-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 92vw;
+  max-height: 88vh;
+  cursor: zoom-out;
+}
+.muse-lightbox-img {
+  max-width: 92vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+.muse-lightbox-counter {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.muse-lightbox-close {
+  position: fixed;
+  top: 14px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s;
+}
+.muse-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.muse-lightbox-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 64px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 36px;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.muse-lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.muse-lightbox-prev {
+  left: 16px;
+}
+.muse-lightbox-next {
+  right: 16px;
+}
+
+/* 标签胶囊 */
+.muse-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  /* v1.4.12: 加 align-items: center。
+     原因：v1.3.6 起"全文"折叠按钮会被 appendChild 到这个 tagRow 容器里，
+     按钮高度（含 12px SVG 图标 + padding + 1.4 行高）比标签胶囊（font-size:11px + padding:2px 10px）
+     略高 ~5-8px。flex 默认 align-items:stretch 会把胶囊拉伸到和按钮同高，
+     borderRadius:999px 的胶囊被撑成细长椭圆，视觉突兀。
+     改成 center：胶囊按自然高度居中显示，按钮也居中，两者互不影响。 */
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.muse-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  background: var(--background-modifier-hover);
+  color: var(--text-accent);
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+.muse-tag-pill:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.muse-load-more {
+  padding: 14px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  border-top: 1px dashed var(--background-modifier-border);
+  margin-top: 10px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 8px;
+  transition: background 0.12s, color 0.12s;
+}
+.muse-load-more:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.muse-load-more:active {
+  background: var(--background-modifier-active);
+}
+
+/* ================== 日历视图 ================== */
+.muse-cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0 8px;
+}
+.muse-cal-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muse-cal-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.muse-cal-nav-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.muse-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.muse-cal-dow {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-faint);
+  padding-bottom: 2px;
+}
+.muse-cal-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+.muse-cal-cell.empty {
+  border: none;
+  background: transparent;
+}
+.muse-cal-cell.has {
+  background: rgba(var(--interactive-accent-rgb), 0.18);
+  border-color: rgba(var(--interactive-accent-rgb), 0.4);
+  color: var(--text-normal);
+  font-weight: 600;
+}
+.muse-cal-cell.has.level-2 {
+  background: rgba(var(--interactive-accent-rgb), 0.34);
+}
+.muse-cal-cell.has.level-3 {
+  background: rgba(var(--interactive-accent-rgb), 0.52);
+}
+.muse-cal-cell.has.level-4 {
+  background: rgba(var(--interactive-accent-rgb), 0.72);
+  color: var(--text-on-accent);
+}
+.muse-cal-cell.today {
+  border-color: var(--interactive-accent);
+  box-shadow: inset 0 0 0 1px var(--interactive-accent);
+}
+
+/* ================== 编辑弹窗 ================== */
+.muse-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+.muse-modal {
+  width: min(560px, 90vw);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.muse-modal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.muse-modal .muse-modal-input {
+  width: 100%;
+  min-height: 160px;
+  max-height: 60vh;
+  /* 必须 !important：.muse-input 基础规则用 !important 把 border/none/
+   * background:transparent/padding:0 写死了，浮层里要让输入框重新有边框与底色，
+   * 否则透明无边框会和弹窗底色糊在一起、失去输入框的层次感。 */
+  padding: 10px 12px !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  border-radius: 6px;
+  /* 底色与主弹窗一致（background-primary），靠边框区分层次 */
+  background: var(--background-primary) !important;
+  color: var(--text-normal);
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-y: auto;
+  outline: none;
+  /* 覆盖 .muse-lp 默认的渐进式披露过渡（浮层里高度固定，不需要 0.7s 动画） */
+  transition: border-color 0.12s ease;
+}
+.muse-modal .muse-modal-input:focus {
+  border-color: var(--interactive-accent) !important;
+}
+/* 浮层输入框的占位符对齐：输入框带 10px/12px 内边距，而 .muse-lp.is-empty::before
+ * 默认 top:0/left:0 是相对 padding box（含内边距区域）定位，会落在内边距里、与正文错位。
+ * 这里按内边距偏移，使其与真正输入的光标/文字对齐。 */
+.muse-modal .muse-modal-input.is-empty::before {
+  top: 10px;
+  left: 12px;
+  right: 12px;
+}
+.muse-modal-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.muse-modal-btns button {
+  padding: 6px 16px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.12s;
+}
+.muse-modal-btns button:hover {
+  background: var(--background-modifier-hover);
+}
+.muse-modal-btns button.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.muse-modal-btns button.mod-cta:hover {
+  background: var(--interactive-accent-hover);
+}
+
+/* ================== 日历视图 / 概览容器 ================== */
+.muse-overview {
+  padding: 10px 6px 6px;
+  /* v1.4.1: 去掉底部灰线，和下方进度条视觉上连贯 */
+  margin-bottom: 0;
+}
+
+/* 热力图保持原样，去掉外层 padding */
+.muse-overview .muse-heatmap {
+  padding: 0 2px;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+
+/* ================== 编辑模式 ================== */
+.muse-hidden {
+  display: none !important;
+}
+
+/* 编辑态的输入卡片：强调色边框发光 */
+.muse-input-card.is-editing {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+}
+
+/* 右下角发送区：取消按钮 + 发送按钮 */
+.muse-submit-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* v1.6.0: 编辑模式的时间选择器
+ *   只有进入编辑模式才显示。原生 datetime-local：
+ *   - PC 端 Chromium：日历弹窗 + 时间选择
+ *   - iOS Safari：滚轮选择器（体验非常好）
+ *   - Android Chrome：material datetime picker
+ *   保持视觉风格与 cancel-btn 一致：低调灰边框，hover 加深。
+ */
+.muse-edit-datetime {
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-text);
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.muse-edit-datetime:hover,
+.muse-edit-datetime:focus {
+  border-color: var(--interactive-accent);
+  color: var(--text-normal);
+}
+
+.muse-cancel-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: var(--background-primary) !important;
+  color: var(--text-muted);
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  box-shadow: none !important;
+}
+.muse-cancel-btn:hover {
+  background: var(--background-modifier-hover) !important;
+  color: var(--text-normal);
+}
+
+/* v2.0.8: 移动端编辑模式下，datetime-local 输入框在窄屏会挤占"取消/发送"按钮
+ *   的位置，导致按钮被遮挡或挤出视口。把 datetime-input 换行到上方一行，
+ *   按钮独占第二行右对齐，手机端两个按钮稳定可见。桌面端保持原样单行布局。
+ *
+ * v2.0.12: v2.0.9~2.0.11 尝试让 datetime 与下方工具列左对齐（视觉更工整），但
+ *   iOS Safari 对 input[type="datetime-local"] 有 3 个联合 quirk
+ *   （-webkit-appearance / flex min-width: auto / 默认 margin），即便都规避后
+ *   真机表现仍不稳定。**改回 v2.0.8 的简单方案**：datetime 在 submit-wrap 内
+ *   按其自然宽度贴右排列（iOS 默认行为），上下两行布局清晰，按钮永远可见。
+ *   视觉上不与左侧工具列左对齐，但稳定、跨平台一致、零 quirk。
+ */
+@media (max-width: 680px) {
+  .muse-submit-wrap {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 8px;
+  }
+  .muse-edit-datetime:not(.muse-hidden) {
+    /* 编辑态下整体换行到 submit-wrap 第一行（按钮在第二行）
+     *   不强求 width: 100%，让 iOS 按内容宽度自然渲染（贴右） */
+    flex-basis: 100%;
+    order: -1;
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 32px;
+  }
+}
+
+/* 正在编辑的卡片：高亮边框 */
+.muse-card.is-editing {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+
+/* ================== 标签联想下拉框 ================== */
+.muse-tag-suggest {
+  position: fixed;
+  z-index: 10001;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  max-height: 280px;
+  overflow-y: auto;
+  min-width: 180px;
+  font-size: 13px;
+}
+.muse-tag-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--text-normal);
+  user-select: none;
+  transition: background 0.08s;
+}
+.muse-tag-suggest-item:hover,
+.muse-tag-suggest-item.active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.muse-tag-suggest-icon {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.7;
+}
+.muse-tag-suggest-icon .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+.muse-tag-suggest-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========== Callout 与卡片协调 ========== */
+.muse-card-body .callout {
+  margin: 0.5em 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.muse-card-body .callout-title {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+.muse-card-body .callout-content {
+  margin-top: 4px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.muse-card-body .callout-content > *:first-child {
+  margin-top: 0;
+}
+.muse-card-body .callout-content > *:last-child {
+  margin-bottom: 0;
+}
+.muse-card-body .callout-icon {
+  font-size: 14px;
+}
+
+/* ========== 任务列表 ========== */
+.muse-card-body ul.contains-task-list {
+  padding-left: 1em;
+  list-style: none;
+}
+.muse-card-body li.task-list-item {
+  padding-left: 0;
+}
+.muse-card-body li.task-list-item input[type="checkbox"] {
+  margin-right: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  transform: scale(0.95);
+}
+.muse-card-body li.task-list-item.is-checked,
+.muse-card-body li[data-task="x"],
+.muse-card-body li[data-task="X"] {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+/* ================== 响应式 ================== */
+
+/* 默认隐藏侧栏折叠按钮（桌面端不需要） */
+.muse-sidebar-toggle {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .muse-sidebar {
+    width: 200px;
+  }
+  .muse-search {
+    width: 140px;
+  }
+}
+
+/* 移动端侧栏蒙版（默认隐藏，仅 <=680px 使用） */
+.muse-sidebar-overlay {
+  display: none;
+}
+
+/* ========== 移动端 / 窄视图 ========== */
+@media (max-width: 680px) {
+  /* 让侧栏变成"抽屉"样式，从左滑入，默认隐藏 */
+  .muse-shell {
+    position: relative;
+  }
+  .muse-sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78%;
+    max-width: 300px;
+    max-height: none;
+    z-index: 5;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    /* v1.1.18: 阴影只在打开时显示
+     *   关闭态 translateX(-100%) 虽然侧栏本体移到视口外，但 box-shadow
+     *   `4 0 18 0.25` 的 18px 扩散会泄到视口左侧，轻微压在输入卡片左缘上，
+     *   部分 iOS / Android WebView 下甚至会发生"此字左半被遮"的观感。
+     */
+    box-shadow: none;
+    border-right: 1px solid var(--background-modifier-border);
+    border-bottom: none;
+    overflow-y: auto;
+  }
+  .muse-root.muse-sidebar-open .muse-sidebar {
+    transform: translateX(0);
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.25);
+  }
+  /* 蒙版 */
+  .muse-sidebar-overlay {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    pointer-events: none;
+    transition: background 0.25s;
+    z-index: 4;
+  }
+  .muse-root.muse-sidebar-open .muse-sidebar-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  /* 显示折叠按钮 */
+  .muse-sidebar-toggle {
+    display: inline-flex;
+    margin-right: 6px;
+    order: -1;
+  }
+  /* 主体占满 */
+  .muse-main {
+    width: 100%;
+  }
+  /* 顶部紧凑 */
+  .muse-topbar {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .muse-brand {
+    display: none;
+  }
+  .muse-search-wrap {
+    flex: 1;
+  }
+  .muse-search {
+    width: 100%;
+    min-width: 80px;
+  }
+  /* v1.1.19: 手机端输入卡片贴底 —— flex order 让 input-card 出现在 list 之后，
+   *   input-card 作为 flex item 天然停在 main 底部（flex-direction: column，main overflow:hidden）。
+   *   不需要 position:sticky，避免某些 WebView 下 sticky 计算不准。
+   */
+  .muse-list {
+    order: 1;
+    padding: 12px 12px 16px;
+  }
+  .muse-input-card {
+    order: 10;
+    margin: 0 8px 8px;
+    padding: 10px 12px 8px;
+    /* 加一个上方投影，让底部卡片有"浮起来"的感觉，视觉上和微信/微博聊天框一致 */
+    box-shadow: 0 -4px 14px -4px rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+  }
+  .muse-input {
+    min-height: 56px;
+    font-size: 15px; /* 手机上避免 iOS 自动缩放 */
+    /* v1.1.18: 防第三方 OB 主题给 textarea 加 text-indent / padding-left，
+     *   导致 placeholder 首字符"此"被左边界裁掉。
+     * v1.4.14: 把 padding-left 从 0 !important 改为 4px !important。
+     *   原来一刀切置 0 会让文字紧贴 textarea 左边缘，在 iOS WebView + 某些
+     *   中文字体组合下会把首列笔画（例如"测""此"）"咬掉" 1-2px，
+     *   视觉上像文字被"剪半"。4px 的安全区既能防主题注入大 padding，
+     *   又保证字形完整呈现。
+     * 右侧补齐对称 padding，避免最后一字在滚动条出现时被压到。
+     * v1.4.16: 补 padding-top/bottom。
+     *   根因：PC 端原 .muse-input 有 `padding: 0 !important`（简写覆盖四边），
+     *   v1.4.14 移动端只补了左右，垂直方向仍然是 0。iOS WebView 里中文字首行顶部
+     *   反锯齿像素会超出 content box 被裁（"测""试""此"等字右上点画会丢 1-2px），
+     *   表现为\"顶部笔画被咬掉\"。加 padding-top:2px 提供垂直安全区，对称加
+     *   padding-bottom:2px 保持视觉平衡；line-height:1.6 已经让文字之间有缓冲，
+     *   所以 2px 足够，再大会让输入框看起来闲散。 */
+    text-indent: 0 !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .muse-input-hint {
+    display: none;
+  }
+  /* 卡片紧凑 */
+  .muse-card {
+    padding: 12px 14px;
+  }
+  .muse-card-body {
+    font-size: 15px;
+  }
+  /* 操作按钮始终可见（手机没有 hover） */
+  .muse-card-actions {
+    opacity: 1;
+  }
+  /* 统计页顶部统计条字体缩小 */
+  .muse-stats {
+    padding: 4px 6px 10px;
+  }
+  .muse-stat-num {
+    font-size: 20px;
+  }
+  /* 图片更小 */
+  .muse-img-grid {
+    max-width: 100%;
+  }
+  .muse-img-grid-1 {
+    max-width: 220px;
+  }
+  .muse-img-grid-1 .muse-img,
+  .muse-img-grid-1 .muse-img-cell {
+    max-height: 200px;
+  }
+  .muse-img-grid-2,
+  .muse-img-grid-4 {
+    max-width: 220px;
+  }
+  .muse-img-grid-5,
+  .muse-img-grid-6,
+  .muse-img-grid-7,
+  .muse-img-grid-8,
+  .muse-img-grid-9 {
+    max-width: 320px;
+  }
+  /* Lightbox 按钮更小 */
+  .muse-lightbox-nav {
+    width: 36px;
+    height: 48px;
+    font-size: 28px;
+  }
+}
+
+/* ================== 数据报告（独立页面视图） ================== */
+
+/* 让视图 contentEl 成为滚动容器（用 block 避免 flex 压扁内部高度）
+ * 并且把背景色统一铺满整个 view-content，避免居中后两侧露出主题色背景
+ *
+ * v1.1.6: 直接把"出血框"padding 放在 view-content 上 —— 这样 Obsidian 移动端
+ *   给 .view-content 加的任何内置 padding / inset 都被我们覆盖，同时子元素
+ *   .muse-stats-view 只负责最大宽度约束和居中，不再管留白，避免"padding 叠加又被裁掉"。
+ */
+/* v1.1.6: 桌面：left/right 56px 舒适留白
+ * v1.1.17: 真正让手机端生效 —— 之前 is-mobile 和默认规则给的 padding 一样，
+ *   等于没区分。现在桌面 48/56/64，手机 24/16/48（上/左右/下），释放横向空间
+ *   给 24 小时柱状图和总览四宫格用。
+ */
+.workspace-leaf-content[data-type="muse-stats-view"] .view-content {
+  padding: 48px 56px 64px !important;
+  overflow-y: auto !important;
+  display: block !important;
+  background: var(--background-primary) !important;
+  box-sizing: border-box;
+}
+.is-mobile .workspace-leaf-content[data-type="muse-stats-view"] .view-content {
+  padding: 24px 16px 48px !important;
+}
+@media (max-width: 520px) {
+  .workspace-leaf-content[data-type="muse-stats-view"] .view-content {
+    padding: 24px 16px 48px !important;
+  }
+}
+
+.muse-stats-view {
+  display: block;
+  padding: 0 !important;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: var(--text-normal);
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.muse-stats-body {
+  display: block;
+}
+
+.mstat-pagetitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+  margin-bottom: 32px;
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+.mstat-pagetitle-icon {
+  font-size: 24px;
+}
+.mstat-pagetitle-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-normal);
+  letter-spacing: 0.3px;
+}
+
+.mstat-empty-page {
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--text-faint);
+}
+
+/* 通用 section 样式（替代原 modal 前缀） */
+.muse-stats-view .mstat-section {
+  margin-bottom: 36px;
+}
+/* v1.1.5: section 之间加细分隔线（第 2 个开始），制造"章节"节奏感 */
+.muse-stats-view .mstat-section + .mstat-section {
+  margin-top: 8px;
+  padding-top: 36px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.muse-stats-view .mstat-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  letter-spacing: 0.3px;
+}
+.muse-stats-view .mstat-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap; /* 窄屏自动换行 */
+}
+.muse-stats-view .mstat-title-row .mstat-title {
+  margin-bottom: 0;
+}
+.muse-stats-view .mstat-subtitle {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+/* 空 bucket 柱子保留极弱的视觉，便于看到刻度连续性 */
+.muse-stats-view .mstat-bar.is-empty {
+  background: var(--background-modifier-border);
+  opacity: 0.5;
+}
+
+/* 总览四宫格 */
+.muse-stats-view .mstat-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.muse-stats-view .mstat-bignum {
+  padding: 22px 10px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  text-align: center;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.muse-stats-view .mstat-bignum:hover {
+  border-color: color-mix(in srgb, var(--interactive-accent) 50%, var(--background-modifier-border));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+}
+.muse-stats-view .mstat-bignum-num {
+  /* v1.1.5: 桌面 40px，视觉分量更足 */
+  font-size: 36px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  background: linear-gradient(
+    135deg,
+    var(--text-normal),
+    color-mix(in srgb, var(--interactive-accent) 70%, var(--text-normal))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.muse-stats-view .mstat-bignum-label {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* 365 天热力图 */
+.muse-stats-view .mstat-yh-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap; /* v1.1.5: 窄屏换行避免挤压 */
+}
+.muse-stats-view .mstat-yh-title-row .mstat-title {
+  margin-bottom: 0;
+}
+.muse-stats-view .mstat-yh-year-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.muse-stats-view .mstat-yh-year-arrow {
+  width: 26px;
+  height: 26px;
+  padding: 0 !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: var(--background-primary) !important;
+  color: var(--text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  transition: background 0.12s, color 0.12s;
+}
+.muse-stats-view .mstat-yh-year-arrow:hover {
+  background: var(--background-modifier-hover) !important;
+  color: var(--interactive-accent);
+  border-color: color-mix(in srgb, var(--interactive-accent) 50%, var(--background-modifier-border)) !important;
+}
+.muse-stats-view .mstat-yh-year-arrow .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+.muse-stats-view .mstat-yh-year-btn {
+  padding: 4px 14px;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: var(--background-primary) !important;
+  color: var(--text-muted);
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none !important;
+}
+.muse-stats-view .mstat-yh-year-btn:hover {
+  background: var(--background-modifier-hover) !important;
+  color: var(--text-normal);
+}
+.muse-stats-view .mstat-yh-wrap {
+  display: flex;
+  gap: 3px;
+  padding-bottom: 2px;
+}
+.muse-stats-view .mstat-yh-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.muse-stats-view .mstat-yh-cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  flex-shrink: 0;
+}
+.muse-stats-view .mstat-yh-cell.level-0 {
+  background: var(--background-modifier-border);
+  opacity: 0.45;
+}
+.muse-stats-view .mstat-yh-cell.level-1 {
+  background: var(--interactive-accent);
+  opacity: 0.3;
+}
+.muse-stats-view .mstat-yh-cell.level-2 {
+  background: var(--interactive-accent);
+  opacity: 0.55;
+}
+.muse-stats-view .mstat-yh-cell.level-3 {
+  background: var(--interactive-accent);
+  opacity: 0.8;
+}
+.muse-stats-view .mstat-yh-cell.level-4 {
+  background: var(--interactive-accent);
+  opacity: 1;
+}
+.muse-stats-view .mstat-yh-monthlabels {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.muse-stats-view .mstat-yh-mlabel {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+.muse-stats-view .mstat-yh-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.muse-stats-view .mstat-yh-legend .mstat-yh-cell {
+  width: 10px;
+  height: 10px;
+}
+
+/* 月度分布 */
+.muse-stats-view .mstat-monthly-title {
+  margin-bottom: 12px;
+}
+.muse-stats-view .mstat-monthly-wrap {
+  margin-bottom: 28px;
+}
+/* v1.1.5: 月度分布紧跟年度热力图，视为同一组 → 去掉分隔线 */
+.muse-stats-view .mstat-section.mstat-monthly-title + * {
+  /* 占位：下一段（月度柱图 wrap）不是 .mstat-section，不需特殊处理 */
+}
+.muse-stats-view .mstat-section.mstat-monthly-title {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* 柱状图 */
+.muse-stats-view .mstat-bar-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  height: 180px;
+  padding: 0 2px;
+}
+.muse-stats-view .mstat-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+}
+.muse-stats-view .mstat-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 1px;
+}
+.muse-stats-view .mstat-bar {
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    var(--interactive-accent),
+    color-mix(in srgb, var(--interactive-accent) 60%, transparent)
+  );
+  opacity: 0.85;
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.muse-stats-view .mstat-bar.is-max {
+  opacity: 1;
+}
+.muse-stats-view .mstat-bar-col:hover .mstat-bar {
+  opacity: 1;
+  filter: brightness(1.1);
+}
+.muse-stats-view .mstat-bar-num {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  height: 13px;
+}
+/* v1.1.5: 0 条月份的数字再弱化一档，保留节奏但不抢视觉 */
+.muse-stats-view .mstat-bar-num.is-dim {
+  opacity: 0.35;
+}
+.muse-stats-view .mstat-bar-label {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.muse-stats-view .mstat-bar-chart-hour .mstat-bar-label {
+  font-size: 10px;
+}
+
+/* 标签云 */
+.muse-stats-view .mstat-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 16px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  line-height: 1.7;
+  align-items: baseline;
+}
+.muse-stats-view .mstat-cloud-tag {
+  color: var(--interactive-accent);
+  cursor: default;
+  transition: opacity 0.12s, transform 0.12s;
+}
+.muse-stats-view .mstat-cloud-tag:hover {
+  opacity: 1 !important;
+  transform: scale(1.05);
+}
+
+/* Top 榜 */
+.muse-stats-view .mstat-hbar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.muse-stats-view .mstat-hbar-row {
+  display: grid;
+  grid-template-columns: 24px 160px 1fr 36px;
+  gap: 12px;
+  align-items: center;
+}
+.muse-stats-view .mstat-hbar-rank {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  background: var(--background-secondary);
+}
+/* v1.1.5: 金银铜改用更有辨识度的饱和色 + 细微内阴影增加质感 */
+.muse-stats-view .mstat-hbar-rank.rank-1 {
+  background: linear-gradient(135deg, #f4c430, #d79820);
+  color: #fff;
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(212, 152, 32, 0.3);
+}
+.muse-stats-view .mstat-hbar-rank.rank-2 {
+  background: linear-gradient(135deg, #c8c8cc, #9a9aa0);
+  color: #fff;
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+}
+.muse-stats-view .mstat-hbar-rank.rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #a0602a);
+  color: #fff;
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+}
+/* rank-4 及之后：保持淡灰，把视觉焦点留给前三 */
+.muse-stats-view .mstat-hbar-rank.rank-4 {
+  background: var(--background-secondary);
+  color: var(--text-faint);
+}
+.muse-stats-view .mstat-hbar-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muse-stats-view .mstat-hbar-wrap {
+  height: 16px;
+  background: var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.muse-stats-view .mstat-hbar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--interactive-accent) 70%, transparent),
+    var(--interactive-accent)
+  );
+  border-radius: 8px;
+  transition: width 0.3s;
+}
+.muse-stats-view .mstat-hbar-num {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 结论文字 */
+.muse-stats-view .mstat-desc {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--background-modifier-hover);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 有趣的发现 */
+.muse-stats-view .mstat-fact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.muse-stats-view .mstat-fact {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text-normal);
+  line-height: 1.55;
+  border-left: 3px solid
+    color-mix(in srgb, var(--interactive-accent) 60%, transparent);
+  /* v1.1.5: hover 时略抬升 + 左边框变深，让每条发现更像"卡片" */
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.muse-stats-view .mstat-fact:hover {
+  transform: translateX(2px);
+  border-left-color: var(--interactive-accent);
+  box-shadow: 0 2px 8px -4px color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+}
+.muse-stats-view .mstat-fact-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.muse-stats-view .mstat-empty {
+  padding: 16px;
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+  background: var(--background-secondary);
+  border-radius: 6px;
+}
+
+/* v1.1.17: 柱状图 & 年度热力图滚动容器
+ *   在整页 padding 区域内独立横向滚动，不再推整页滚动。
+ *   负 margin 让滚动区域贴齐视口左右边缘（越过 section 的 padding），
+ *   这样手指从左滑到右可以看到所有柱子，滚动条也不会被 padding 切掉。
+ */
+.muse-stats-view .mstat-bar-chart-scroll,
+.muse-stats-view .mstat-yh-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  /* 隐藏滚动条但保留滚动能力（移动端更常见），需要手势提示可改为 'thin' */
+  scrollbar-width: thin;
+  scrollbar-color: var(--background-modifier-border) transparent;
+}
+.muse-stats-view .mstat-bar-chart-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.muse-stats-view .mstat-bar-chart-scroll::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 2px;
+}
+.muse-stats-view .mstat-bar-chart-scroll .mstat-bar-chart {
+  /* 让柱图有固定最小宽度，不被 flex 压扁 */
+  min-width: 520px;
+}
+.muse-stats-view .mstat-bar-chart-scroll .mstat-bar-chart-hour {
+  /* 24 小时图每列至少 18px + gap，保底约 580px */
+  min-width: 580px;
+}
+.muse-stats-view .mstat-yh-scroll {
+  /* 年度热力图 + 月份标签都在这里面，彼此不会错位 */
+  padding-bottom: 2px;
+}
+
+/* 窄屏响应式 */
+@media (max-width: 680px) {
+  .workspace-leaf-content[data-type="muse-stats-view"] .view-content {
+    /* v1.1.17: 和主规则一致，16px 左右 padding，释放 8px 给柱图区域 */
+    padding: 24px 16px 48px !important;
+  }
+  .muse-stats-view {
+    padding: 0 !important;
+  }
+  /* 总览四宫格：4 列 → 2×2 */
+  .muse-stats-view .mstat-overview {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .muse-stats-view .mstat-bignum {
+    padding: 18px 8px;
+  }
+  .muse-stats-view .mstat-bignum-num {
+    font-size: 28px;
+  }
+  /* Top 10 标签奖牌行：奖牌 + 标签 + 进度条 + 数字 四列 */
+  .muse-stats-view .mstat-hbar-row {
+    grid-template-columns: 22px 110px 1fr 30px;
+    gap: 8px;
+  }
+  /* section 节奏感收缩 */
+  .muse-stats-view .mstat-section + .mstat-section {
+    padding-top: 28px;
+    margin-top: 0;
+  }
+  .mstat-pagetitle {
+    margin-bottom: 24px;
+  }
+  .mstat-pagetitle-text {
+    font-size: 18px;
+  }
+  /* v1.1.17: 标题 + 副标题在窄屏改为纵向堆叠，副标题不挤压标题 */
+  .muse-stats-view .mstat-title-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .muse-stats-view .mstat-title-row .mstat-subtitle {
+    flex-basis: 100%;
+    margin-top: -2px;
+  }
+  /* 柱图高度在窄屏收缩 180px → 140px，视觉更紧凑 */
+  .muse-stats-view .mstat-bar-chart {
+    height: 140px;
+  }
+  /* 24 小时柱图的两位数字 label 太挤，改成 45° 旋转省空间（如需保水平可注释掉） */
+  .muse-stats-view .mstat-bar-chart-hour .mstat-bar-label {
+    font-size: 9px;
+  }
+  /* 有趣发现卡片：padding 收紧 */
+  .muse-stats-view .mstat-fact {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  /* 结论文字 */
+  .muse-stats-view .mstat-desc {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* v1.1.6: 去除 Obsidian 移动端在数据报告页面左侧的"翻页灰色渐变"
+ *
+ * Obsidian 移动端会在 workspace-leaf 上用 ::before 伪元素画一条阴影，
+ * 用来暗示"左边可以滑出来一个侧栏"。在我们这个独立的数据报告标签页里完全不需要，
+ * 反而显得不够干净。这里只对 stats-view 所在的 leaf 去掉。
+ */
+.is-mobile .workspace-leaf:has(.workspace-leaf-content[data-type="muse-stats-view"])::before,
+.is-mobile .workspace-leaf:has(.workspace-leaf-content[data-type="muse-stats-view"])::after,
+.is-mobile .workspace-leaf-content[data-type="muse-stats-view"]::before,
+.is-mobile .workspace-leaf-content[data-type="muse-stats-view"]::after,
+.is-mobile .workspace-leaf-content[data-type="muse-stats-view"] .view-content::before,
+.is-mobile .workspace-leaf-content[data-type="muse-stats-view"] .view-content::after {
+  display: none !important;
+  box-shadow: none !important;
+  background: none !important;
+  content: none !important;
+}
+/* 同样覆盖主视图（muse-view）的翻页渐变 */
+.is-mobile .workspace-leaf:has(.workspace-leaf-content[data-type="muse-view"])::before,
+.is-mobile .workspace-leaf:has(.workspace-leaf-content[data-type="muse-view"])::after,
+.is-mobile .workspace-leaf-content[data-type="muse-view"]::before,
+.is-mobile .workspace-leaf-content[data-type="muse-view"]::after,
+.is-mobile .workspace-leaf-content[data-type="muse-view"] .view-content::before,
+.is-mobile .workspace-leaf-content[data-type="muse-view"] .view-content::after {
+  display: none !important;
+  box-shadow: none !important;
+  background: none !important;
+  content: none !important;
+}
+
+/* ================== 统计弹窗（兼容保留，以防旧 API 调用） ================== */
+.muse-stats-modal {
+  max-width: 640px;
+}
+.muse-stats-modal .mstat-section {
+  margin-bottom: 24px;
+}
+.muse-stats-modal .mstat-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+}
+
+/* 总览四宫格 */
+.muse-stats-modal .mstat-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.muse-stats-modal .mstat-bignum {
+  padding: 14px 6px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--interactive-accent) 8%, var(--background-secondary)),
+    var(--background-secondary)
+  );
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  text-align: center;
+}
+.muse-stats-modal .mstat-bignum-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  background: linear-gradient(
+    135deg,
+    var(--text-normal),
+    color-mix(in srgb, var(--interactive-accent) 70%, var(--text-normal))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.muse-stats-modal .mstat-bignum-label {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+/* 365 天热力图 */
+.muse-stats-modal .mstat-yh-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.muse-stats-modal .mstat-yh-title-row .mstat-title {
+  margin-bottom: 0;
+}
+.muse-stats-modal .mstat-yh-year-btn {
+  padding: 3px 12px;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: var(--background-primary) !important;
+  color: var(--text-muted);
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none !important;
+}
+.muse-stats-modal .mstat-yh-year-btn:hover {
+  background: var(--background-modifier-hover) !important;
+  color: var(--text-normal);
+}
+/* 横向滚动容器 */
+.muse-stats-modal .mstat-yh-wrap {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  /* 自定义滚动条 */
+  scrollbar-width: thin;
+}
+.muse-stats-modal .mstat-yh-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+.muse-stats-modal .mstat-yh-wrap::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+.muse-stats-modal .mstat-yh-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.muse-stats-modal .mstat-yh-cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  flex-shrink: 0;
+}
+.muse-stats-modal .mstat-yh-cell.level-0 {
+  background: var(--background-modifier-border);
+  opacity: 0.45;
+}
+.muse-stats-modal .mstat-yh-cell.level-1 {
+  background: var(--interactive-accent);
+  opacity: 0.3;
+}
+.muse-stats-modal .mstat-yh-cell.level-2 {
+  background: var(--interactive-accent);
+  opacity: 0.55;
+}
+.muse-stats-modal .mstat-yh-cell.level-3 {
+  background: var(--interactive-accent);
+  opacity: 0.8;
+}
+.muse-stats-modal .mstat-yh-cell.level-4 {
+  background: var(--interactive-accent);
+  opacity: 1;
+}
+
+/* 月份标签：绝对定位，不再挤 */
+.muse-stats-modal .mstat-yh-monthlabels {
+  position: relative;
+  height: 14px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.muse-stats-modal .mstat-yh-mlabel {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+.muse-stats-modal .mstat-yh-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.muse-stats-modal .mstat-yh-legend .mstat-yh-cell {
+  width: 9px;
+  height: 9px;
+}
+
+/* 月度分布紧跟热力图 */
+.muse-stats-modal .mstat-monthly-title {
+  margin-bottom: 8px;
+}
+.muse-stats-modal .mstat-monthly-wrap {
+  margin-bottom: 24px;
+}
+
+/* 柱状图 */
+.muse-stats-modal .mstat-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+  padding: 0 2px;
+}
+.muse-stats-modal .mstat-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.muse-stats-modal .mstat-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  min-height: 1px;
+}
+.muse-stats-modal .mstat-bar {
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    var(--interactive-accent),
+    color-mix(in srgb, var(--interactive-accent) 60%, transparent)
+  );
+  opacity: 0.85;
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.muse-stats-modal .mstat-bar.is-max {
+  opacity: 1;
+}
+.muse-stats-modal .mstat-bar-col:hover .mstat-bar {
+  opacity: 1;
+  transform: scaleY(1.02);
+}
+.muse-stats-modal .mstat-bar-num {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  height: 12px;
+}
+.muse-stats-modal .mstat-bar-label {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.muse-stats-modal .mstat-bar-chart-hour .mstat-bar-label {
+  font-size: 9px;
+}
+
+/* 标签云 */
+.muse-stats-modal .mstat-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 12px 8px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  line-height: 1.6;
+  align-items: baseline;
+}
+.muse-stats-modal .mstat-cloud-tag {
+  color: var(--interactive-accent);
+  cursor: default;
+  transition: opacity 0.12s, transform 0.12s;
+}
+.muse-stats-modal .mstat-cloud-tag:hover {
+  opacity: 1 !important;
+  transform: scale(1.05);
+}
+
+/* 横向柱状图（带排名） */
+.muse-stats-modal .mstat-hbar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.muse-stats-modal .mstat-hbar-row {
+  display: grid;
+  grid-template-columns: 22px 130px 1fr 30px;
+  gap: 10px;
+  align-items: center;
+}
+.muse-stats-modal .mstat-hbar-rank {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  background: var(--background-secondary);
+}
+.muse-stats-modal .mstat-hbar-rank.rank-1 {
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #fff;
+}
+.muse-stats-modal .mstat-hbar-rank.rank-2 {
+  background: linear-gradient(135deg, #d0d0d0, #a0a0a0);
+  color: #fff;
+}
+.muse-stats-modal .mstat-hbar-rank.rank-3 {
+  background: linear-gradient(135deg, #d49060, #b86b30);
+  color: #fff;
+}
+.muse-stats-modal .mstat-hbar-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muse-stats-modal .mstat-hbar-wrap {
+  height: 14px;
+  background: var(--background-modifier-border);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.muse-stats-modal .mstat-hbar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--interactive-accent) 70%, transparent),
+    var(--interactive-accent)
+  );
+  border-radius: 7px;
+  transition: width 0.3s;
+}
+.muse-stats-modal .mstat-hbar-num {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 结论文字 */
+.muse-stats-modal .mstat-desc {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--background-modifier-hover);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 有趣的发现 */
+.muse-stats-modal .mstat-fact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.muse-stats-modal .mstat-fact {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-normal);
+  line-height: 1.5;
+  border-left: 3px solid
+    color-mix(in srgb, var(--interactive-accent) 60%, transparent);
+}
+.muse-stats-modal .mstat-fact-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.muse-stats-modal .mstat-empty {
+  padding: 16px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+  background: var(--background-secondary);
+  border-radius: 6px;
+}
+
+
+/* ============================================================
+ * v1.1.0: 浠ｇ爜鍧楀鍒舵寜閽?/ 琛ㄦ牸瀹瑰櫒 / 琛ㄦ牸閫夋嫨鍣ㄥ脊绐? * ============================================================ */
+
+/* 代码块样式见上方 .muse-card-body pre 规则；复制按钮由 Obsidian 原生提供 */
+
+/* --- 琛ㄦ牸锛氬彲妯悜婊氬姩瀹瑰櫒 + 缇庡寲 --- */
+.muse-card-body .muse-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 6px 0;
+  border-radius: 6px;
+  /* 婊氬姩鏉℃煍鍜?*/
+  scrollbar-width: thin;
+}
+.muse-card-body .muse-table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+.muse-card-body .muse-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+.muse-card-body .muse-table-wrap table {
+  margin: 0;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.muse-card-body .muse-table-wrap th,
+.muse-card-body .muse-table-wrap td {
+  padding: 6px 10px;
+  border: 1px solid var(--background-modifier-border);
+  white-space: nowrap;
+}
+.muse-card-body .muse-table-wrap th {
+  background: var(--background-secondary);
+  font-weight: 600;
+}
+.muse-card-body .muse-table-wrap tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--background-secondary) 40%, transparent);
+}
+
+/* --- 琛ㄦ牸閫夋嫨鍣ㄥ脊绐楋紙鎻掑叆琛ㄦ牸鎸夐挳锛?-- */
+.muse-table-picker {
+  position: fixed;
+  z-index: 999;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  padding: 10px;
+  user-select: none;
+}
+.muse-table-picker-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.muse-table-picker-grid {
+  display: grid;
+  /* v1.1.15: 桌面 8×8 → 6×6，顺便把格子从 18px 放大到 22px，更易点击 */
+  grid-template-columns: repeat(6, 22px);
+  grid-template-rows: repeat(6, 22px);
+  gap: 3px;
+}
+.muse-table-picker-cell {
+  width: 22px;
+  height: 22px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.08s ease, border-color 0.08s ease;
+}
+.muse-table-picker-cell:hover {
+  border-color: var(--interactive-accent);
+}
+.muse-table-picker-cell.is-active {
+  background: color-mix(in srgb, var(--interactive-accent) 25%, transparent);
+  border-color: var(--interactive-accent);
+}
+
+/* v1.1.7: 手机端表格选择器 —— 单击即插入
+ * v1.1.15: 8×8 → 5×5，单元格 32px → 36px。5×5 在 320px 屏（最窄的 iPhone SE）
+ *   上宽度约 36×5 + 3×4 + 16×2 = 224px，居中显示后两侧各有 48px 余量，永不溢出。
+ *   95% 的 md 表格都是 ≤5 列，减少选择后界面干净非常多。
+ */
+.muse-table-picker.is-mobile {
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+.muse-table-picker.is-mobile .muse-table-picker-grid {
+  grid-template-columns: repeat(5, 36px);
+  grid-template-rows: repeat(5, 36px);
+  gap: 4px;
+}
+.muse-table-picker.is-mobile .muse-table-picker-cell {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+}
+.muse-table-picker.is-mobile .muse-table-picker-cell-text {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none; /* 点击直接穿透到 cell */
+}
+.muse-table-picker.is-mobile .muse-table-picker-cell:active {
+  background: color-mix(in srgb, var(--interactive-accent) 35%, transparent);
+  border-color: var(--interactive-accent);
+}
+.muse-table-picker.is-mobile .muse-table-picker-label {
+  font-size: 13px;
+  margin-bottom: 12px;
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+
+/* v1.1.1: 删除确认浮层 —— 警告风格按钮 */
+.muse-confirm .muse-modal-btns .mod-warning {
+  background: var(--text-error, #e03131);
+  color: #fff;
+  border-color: transparent;
+}
+.muse-confirm .muse-modal-btns .mod-warning:hover {
+  background: color-mix(in srgb, var(--text-error, #e03131) 85%, #000);
+}
+
+/* ================================================================
+ * v1.1.19 新增样式
+ * ================================================================ */
+
+/* —— 卡片 hover 引用按钮（次级可见，从 ⋯ 菜单提到表面） —— */
+.muse-card-quote {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.muse-card:hover .muse-card-quote {
+  opacity: 0.7;
+}
+.muse-card-quote:hover {
+  opacity: 1 !important;
+  color: var(--interactive-accent) !important;
+}
+.muse-card-quote .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+@media (max-width: 680px) {
+  /* 手机没有 hover，常显但柔和 */
+  .muse-card-quote {
+    opacity: 0.45;
+  }
+}
+
+/* —— empty 状态跳转按钮（回顾空态的"随机 5 条"）—— */
+.muse-empty-btn {
+  margin-top: 16px;
+  padding: 8px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: none;
+  transition: transform 0.12s, filter 0.12s, box-shadow 0.12s;
+}
+.muse-empty-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 4px 12px -4px
+    color-mix(in srgb, var(--interactive-accent) 60%, transparent);
+}
+.muse-empty-btn .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* —— meta 工具条：可能并排两个按钮时的间距 —— */
+/* —— 数据报告：今日彩蛋 fact 的特殊样式 —— */
+.muse-stats-view .mstat-fact.is-egg {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--interactive-accent) 10%, var(--background-primary)),
+    color-mix(in srgb, var(--interactive-accent) 3%, var(--background-primary))
+  );
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--interactive-accent) 32%,
+      var(--background-modifier-border)
+    );
+  border-left: 3px solid var(--interactive-accent);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text-normal);
+  position: relative;
+  overflow: hidden;
+}
+.muse-stats-view .mstat-fact.is-egg::after {
+  /* 右上角藏一个非常淡的星光装饰 */
+  content: "✦";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 14px;
+  color: var(--interactive-accent);
+  opacity: 0.25;
+  pointer-events: none;
+}
+.muse-stats-view .mstat-fact.is-egg .mstat-fact-icon {
+  font-size: 20px;
+}
+
+/* —— 视觉微调（第四类建议）—— */
+
+/* #17 统计条数字字号略收，label 略放 */
+.muse-stat-num {
+  font-size: 20px; /* 22px → 20px */
+}
+.muse-stat-label {
+  font-size: 12px; /* 11px → 12px */
+}
+
+/* #16 桌面 logo 文字不再那么粗 */
+.muse-topbar-title {
+  font-size: 18px; /* 20px → 18px */
+}
+
+/* #18 标签胶囊加 hover 反馈 */
+.muse-tag-pill {
+  transition: background 0.12s, color 0.12s, transform 0.08s;
+}
+.muse-tag-pill:hover {
+  background: color-mix(
+    in srgb,
+    var(--interactive-accent) 16%,
+    transparent
+  );
+  color: var(--interactive-accent);
+  transform: translateY(-1px);
+}
+
+
+/* #20 搜索框在深色主题下有更清晰的背景对比 */
+.muse-search-wrap {
+  background: var(--background-secondary);
+}
+
+/* 卡片之间的节奏感（#6：日期组内的卡片垂直间距） */
+.muse-day-group .muse-card + .muse-card {
+  margin-top: 8px;
+}
+
+/* ==================== v1.4.0 → v1.4.1: 每日打卡进度条 ==================== */
+/* 整行：进度条 + 右侧图标组（靶心 + 视图切换） */
+.muse-daily-goal-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 10px 0px;
+  padding: 2px 0;
+  /* 作为 overview 和 "视图" 列表之间的分隔；底部加一点 margin 和视图列表拉开距离 */
+}
+
+/* 进度条本体（可点击跳今天） */
+.muse-daily-goal {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 140ms ease;
+}
+.muse-daily-goal:hover {
+  background: var(--background-modifier-hover);
+}
+.muse-daily-goal-bar {
+  height: 4px;
+  background: var(--background-modifier-border);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.muse-daily-goal-fill {
+  height: 100%;
+  width: 0%;
+  /* v1.4.1: 颜色跟随主题 accent，自动适配深浅/用户自定义主题 */
+  background: var(--interactive-accent);
+  border-radius: 2px;
+  transition: width 320ms ease, box-shadow 220ms ease;
+}
+/* 已完成（≥目标）：细微发光，暗示"达成" */
+.muse-daily-goal-row.is-done .muse-daily-goal-fill {
+  box-shadow: 0 0 6px color-mix(in srgb, var(--interactive-accent) 45%, transparent);
+}
+
+/* 右侧图标组 */
+.muse-daily-goal-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.muse-daily-goal-target,
+.muse-daily-goal-switch {
+  padding: 3px 4px !important;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+.muse-daily-goal-target:hover,
+.muse-daily-goal-switch:hover {
+  color: var(--interactive-accent) !important;
+}
+.muse-daily-goal-target .svg-icon,
+.muse-daily-goal-switch .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+/* 已完成时靶心图标变 accent 色，给一点"鼓励感" */
+.muse-daily-goal-row.is-done .muse-daily-goal-target {
+  color: var(--interactive-accent);
+}
+
+/* v1.3.0 → v1.3.3: 长笔记折叠
+   让 card 成为定位上下文，方便折叠按钮绝对定位到右下角 */
+.muse-card {
+  position: relative;
+}
+.muse-card-body.is-collapsed {
+  max-height: var(--muse-collapse-max, 240px);
+  overflow: hidden;
+  position: relative;
+}
+/* 底部渐变淡出遮罩，从 body 背景色过渡到透明
+   注意：卡片实际背景是 --background-primary-alt，fallback --background-secondary
+   遮罩底色必须与它一致，否则会有色差 */
+.muse-card-body.is-collapsed::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--background-primary-alt, var(--background-secondary)) 90%
+  );
+  pointer-events: none;
+}
+/* 置顶卡片用 accent 混色背景，遮罩也要跟着变 */
+.muse-card.is-pinned .muse-card-body.is-collapsed::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--interactive-accent) 4%, var(--background-primary-alt, var(--background-secondary))) 90%
+  );
+}
+
+/* 展开/收起按钮：居中、仅箭头、醒目胶囊型 */
+.muse-collapse-toggle {
+  /* 对抗 Obsidian 主题对 button 的默认样式 */
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0;
+  width: 40px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: filter 140ms ease, transform 120ms ease;
+  position: relative;
+  z-index: 2;
+}
+.muse-collapse-toggle:hover {
+  filter: brightness(1.12);
+}
+.muse-collapse-toggle:active {
+  transform: scale(0.94);
+}
+.muse-collapse-toggle:focus,
+.muse-collapse-toggle:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+.muse-collapse-toggle .muse-collapse-icon {
+  display: inline-flex;
+  align-items: center;
+}
+.muse-collapse-toggle .muse-collapse-icon .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* 折叠态：悬浮在底部渐变遮罩正中、略靠下 */
+.muse-card-body.is-collapsed > .muse-collapse-toggle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 5px;
+}
+
+/* 展开态：与折叠态采用同一套 absolute 居中定位，避免切换时布局模型跳变；
+   给 body 加底部留白，避免胶囊盖住最后一行文字 */
+.muse-card-body.has-toggle:not(.is-collapsed) {
+  padding-bottom: 30px;
+}
+.muse-card-body.has-toggle:not(.is-collapsed) > .muse-collapse-toggle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 8px;
+}
+
+/* 按钮在图片网格内时：imgGrid 是 grid 布局，按钮应独占一行右对齐。
+   通过 grid-column: 1 / -1 让按钮横跨所有列，再 justify-self: end 右对齐 */
+.muse-img-grid > .muse-collapse-toggle {
+  grid-column: 1 / -1;
+  justify-self: end;
+  margin-top: 2px;
+}
+
+
+/* ================================================================
+ * v1.4.5: 顶部工具区（方案 A）
+ *   把数据报告按钮从 search-wrap 内抽出来，与新增的"年度全景图"
+ *   按钮并排放到独立的 .muse-topbar-tools 容器里。
+ *   语义上"左内容右工具"，并为未来更多入口留好位置。
+ * ================================================================ */
+.muse-topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.muse-topbar-tools .muse-icon-btn .svg-icon {
+  /* 比 search-wrap 内的 14px 稍大，与 topbar 字号协调 */
+  width: 16px;
+  height: 16px;
+}
+
+/* ================================================================
+ * v1.4.5: 年度全景图视图
+ *   布局：4 列 × 3 行 = 12 个月（窄屏依次降级到 3/2/1 列）
+ *   截图风格：白/暗底 + accent 色圆角方块标记有记录的日期
+ * ================================================================ */
+/* v1.4.7: 出血边距挪到 view-content 上（和数据报告视图一样做法）
+ *   原因：v1.4.6 把 padding 放在内层 .muse-year-view 上，
+ *   但 Obsidian 的 .view-content 自身有 padding/inset，某些主题下会把我们内层的
+ *   padding 视觉上压缩到紧贴边缘。直接把 56/80 的出血框写在 view-content 上，
+ *   用 !important 覆盖宿主，彻底解决贴边问题。
+ */
+.workspace-leaf-content[data-type="muse-year-view"] .view-content {
+  padding: 64px 80px 80px !important;
+  overflow-y: auto !important;
+  display: block !important;
+  background: var(--background-primary) !important;
+  box-sizing: border-box;
+}
+.is-mobile .workspace-leaf-content[data-type="muse-year-view"] .view-content {
+  padding: 32px 20px 56px !important;
+}
+
+.muse-year-view {
+  /* v1.4.7: 自身 padding 归零（出血框已上移到 view-content），
+   *   只负责 max-width + 居中 + 色彩上下文 */
+  padding: 0 !important;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--text-normal);
+  box-sizing: border-box;
+}
+
+/* ---- 顶部：年份大标题 + 切换 ---- */
+.muse-year-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+.muse-year-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-normal);
+  line-height: 1;
+}
+.muse-year-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--background-secondary);
+}
+.muse-year-nav-btn,
+.muse-year-today-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: background 0.12s, color 0.12s;
+}
+.muse-year-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  padding: 0 !important;
+}
+.muse-year-today-btn {
+  padding: 4px 14px !important;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.muse-year-nav-btn:hover,
+.muse-year-today-btn:hover {
+  background: var(--background-modifier-hover) !important;
+  color: var(--text-normal);
+}
+.muse-year-nav-btn .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- 12 个月网格（卡片化后 gap 放大，月与月之间视觉呼吸） ---- */
+.muse-year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+
+/* v1.4.6: 每个月卡片化
+ *   - 淡底 + 细描边 + 圆角，视觉上月份是独立单元
+ *   - 内 padding 给"纸卡"感
+ */
+.muse-year-month {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  padding: 18px 16px 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.muse-year-month:hover {
+  border-color: var(--background-modifier-border-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 月份英文缩写标签 + 下方细分隔线 */
+.muse-year-month-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed var(--background-modifier-border);
+}
+
+/* 星期头（日一二三四五六） */
+.muse-year-weekhead {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.muse-year-wday {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-faint);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* 日期网格：6 行 × 7 列，gap 略微拉开让圆点更清爽 */
+.muse-year-grid-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  /* v1.4.7: 格子内容居中（配合 day 的 max-width 才有"圆更小+格子留白"效果） */
+  justify-items: center;
+  align-items: center;
+}
+
+/* 单个日期圆点 —— v1.4.7: 圆点尺寸上限锁死
+ *   之前用 aspect-ratio:1 + 拉伸到整格，宽屏下圆点会随列宽变大显得粗壮；
+ *   现在 max-width/height 限死 20px，格子内居中，宽屏时圆点周围会自动留白。
+ */
+.muse-year-day {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 20px;
+  max-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-normal);
+  border-radius: 50%;
+  cursor: default;
+  transition: background 0.12s, color 0.12s, box-shadow 0.14s;
+  user-select: none;
+}
+
+/* 本月外日期（前一个月末 / 下一个月头）：很淡，让本月焦点更突出 */
+.muse-year-day.is-out {
+  color: var(--text-faint);
+  opacity: 0.28;
+}
+
+/* 有笔记的日期：accent 色圆点 + 浅色数字 */
+.muse-year-day.has-memo {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent, #fff);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* v1.4.8: 按笔记数分 4 档颜色深浅，与侧栏 / 数据报告热力图一致
+ *   实现：用 color-mix 把 accent 色和背景混合出 4 种深浅。
+ *   不用 opacity 是因为那会把数字也变淡，圆点多了以后看不清；
+ *   color-mix 只改背景色保持文字清晰。
+ */
+.muse-year-day.has-memo.level-1 {
+  background: color-mix(in srgb, var(--interactive-accent) 30%, var(--background-secondary));
+  color: var(--text-normal);
+}
+.muse-year-day.has-memo.level-2 {
+  background: color-mix(in srgb, var(--interactive-accent) 55%, var(--background-secondary));
+  color: var(--text-on-accent, #fff);
+}
+.muse-year-day.has-memo.level-3 {
+  background: color-mix(in srgb, var(--interactive-accent) 80%, var(--background-secondary));
+  color: var(--text-on-accent, #fff);
+}
+.muse-year-day.has-memo.level-4 {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent, #fff);
+}
+
+.muse-year-day.has-memo:hover {
+  /* v1.4.7: 发光环同步缩小（配合 20px 圆点） */
+  box-shadow: 0 0 0 1.5px var(--background-secondary),
+    0 0 0 3px var(--interactive-accent);
+}
+
+/* 今天：不管有没有笔记都要明显标记 */
+.muse-year-day.is-today:not(.has-memo) {
+  box-shadow: inset 0 0 0 1.5px var(--interactive-accent);
+  color: var(--interactive-accent);
+  font-weight: 600;
+}
+.muse-year-day.is-today.has-memo {
+  /* 有笔记又是今天：双环效果 */
+  box-shadow: 0 0 0 1.5px var(--background-secondary),
+    0 0 0 3px var(--interactive-accent);
+}
+
+/* ---- 底部小统计行 ---- */
+.muse-year-foot {
+  margin-top: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  justify-content: center;
+}
+.muse-year-foot-item {
+  /* 数字等宽字形，统计行读起来更稳 */
+  font-variant-numeric: tabular-nums;
+}
+.muse-year-foot-sep {
+  opacity: 0.35;
+}
+
+/* ---- 响应式：窄屏降级 ---- */
+@media (max-width: 1200px) {
+  .muse-year-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .workspace-leaf-content[data-type="muse-year-view"] .view-content {
+    padding: 56px 56px 72px !important;
+  }
+}
+@media (max-width: 900px) {
+  .muse-year-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .workspace-leaf-content[data-type="muse-year-view"] .view-content {
+    padding: 40px 32px 56px !important;
+  }
+  .muse-year-title {
+    font-size: 28px;
+  }
+}
+@media (max-width: 560px) {
+  .muse-year-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .workspace-leaf-content[data-type="muse-year-view"] .view-content {
+    padding: 28px 20px 48px !important;
+  }
+  .muse-year-header {
+    margin-bottom: 24px;
+  }
+  .muse-year-title {
+    font-size: 24px;
+  }
+  .muse-year-day {
+    /* 手机单列时容器更宽，圆点也相应放大一点，配合手指触控 */
+    max-width: 26px;
+    max-height: 26px;
+    font-size: 12px;
+  }
+  /* 移动端 topbar 工具区收紧 */
+  .muse-topbar-tools {
+    margin-left: 4px;
+  }
+}
+
+
+
+/* ==================== v2.0.0 鏂板鏍峰紡 ==================== */
+
+/* 鎼滅储鍛戒腑楂樹寒 */
+.muse-search-hit {
+  background: var(--text-highlight-bg, rgba(255, 208, 0, 0.35));
+  color: inherit;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+/* 鎯呮劅鑹插僵鍙鍖栵細鍗＄墖宸﹁竟鑹叉潯
+   color-coding 鏄惎鍙戝紡鍒ゆ柇锛岄粯璁ゅ叧闂紝寮€鍚悗鑹叉潯鍙湪鍛戒腑鍏抽敭璇嶆椂鍑虹幇 */
+.muse-card.muse-mood-happy {
+  box-shadow: inset 3px 0 0 0 #f5c76a;
+}
+.muse-card.muse-mood-touched {
+  box-shadow: inset 3px 0 0 0 #e88eb4;
+}
+/* v2.0.2: 新增 inspired（鼓励/励志/加油） */
+.muse-card.muse-mood-inspired {
+  box-shadow: inset 3px 0 0 0 #e89a5c;
+}
+.muse-card.muse-mood-sad {
+  box-shadow: inset 3px 0 0 0 #7a93b0;
+}
+.muse-card.muse-mood-angry {
+  box-shadow: inset 3px 0 0 0 #c77764;
+}
+/* v2.0.1: 新增 fear（暗紫）和 tired（浅灰棕）两个维度 */
+.muse-card.muse-mood-fear {
+  box-shadow: inset 3px 0 0 0 #6e5a8f;
+}
+.muse-card.muse-mood-tired {
+  box-shadow: inset 3px 0 0 0 #a89684;
+}
+/* 缃《 / 鏀惰棌宸茬粡鏈?box-shadow锛屽拰 mood 鍙兘鍐茬獊銆俶ood 鐢?left-inset锛?   缃《鐢?border-top锛屼笉鍐茬獊锛涘拰 is-pinned 骞跺垪鏃朵紭鍏?mood 鐨勫乏鑹叉潯銆?*/
+
+/* 绱у噾瑙嗗浘妯″紡锛氶檺鍒舵瘡寮犲崱姝ｆ枃楂樺害 + 鍥剧墖缂╁皬 */
+.muse-list.is-compact .muse-card-body {
+  overflow: hidden;
+}
+.muse-list.is-compact .muse-card {
+  padding: 10px 14px;
+}
+.muse-list.is-compact .muse-img-grid {
+  max-height: 80px;
+  overflow: hidden;
+}
+.muse-list.is-compact .muse-card-body p {
+  margin: 0.3em 0;
+}
+
+.muse-list.is-compact .muse-card-body ul.contains-task-list li.task-list-item input[type="checkbox"] {
+  margin-left: 0;
+}
+
+/* Vim 閫変腑鎬?*/
+.muse-card.is-vim-selected {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+  transform: translateX(2px);
+  transition: transform 0.08s, outline 0.1s;
+}
+
+/* 鐑姏鍥惧寮?tooltip */
+.muse-heatmap-tooltip {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-width: 180px;
+  max-width: 280px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-size: 12px;
+  color: var(--text-normal);
+  pointer-events: none;
+  animation: muse-tip-in 0.12s ease;
+}
+@keyframes muse-tip-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.muse-heatmap-tooltip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--background-modifier-border);
+}
+.muse-heatmap-tooltip-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.muse-heatmap-tooltip-row {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+  line-height: 1.5;
+}
+.muse-heatmap-tooltip-time {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 11px;
+}
+.muse-heatmap-tooltip-text {
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.muse-heatmap-tooltip-more {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* 鐑姏鍥炬牸瀛?hover 鏀惧ぇ鏁堟灉 */
+.muse-heatmap-cell {
+  transition: transform 0.08s, filter 0.1s;
+}
+.muse-heatmap-cell:hover {
+  transform: scale(1.35);
+  filter: brightness(1.15);
+  z-index: 2;
+  position: relative;
+}
+
+
+/* ================== 侧边栏搜索框样式 ================== */
+
+/* 侧边栏搜索框容器 */
+.muse-sidebar-search {
+    padding: 0 12px;
+}
+
+/* 侧边栏内的搜索框 */
+.muse-sidebar-search .muse-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    padding: 0 8px 0 12px;
+    transition: border-color 0.15s;
+}
+
+.muse-sidebar-search .muse-search-wrap:focus-within {
+    border-color: var(--interactive-accent);
+}
+
+.muse-sidebar-search .muse-search-icon {
+    display: flex;
+    align-items: center;
+    color: var(--text-faint);
+}
+
+.muse-sidebar-search .muse-search-icon .svg-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.muse-sidebar-search .muse-search {
+    width: 100%;
+    padding: 8px 4px;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--text-normal);
+    font-size: 13px;
+    outline: none !important;
+}
+
+.muse-sidebar-search .muse-search:focus,
+.muse-sidebar-search .muse-search:hover,
+.muse-sidebar-search .muse-search:active {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 概览包装器 */
+.muse-overview-wrapper {
+    margin-top: 4px;
+}
+
+
+/* 设置按钮组样式 */
+.muse-settings-btns {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.muse-settings-btns button {
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* 设置页输入框：不再无脑 flex:1（会导致不同行输入框长度不一），
+ * 改为按类型定宽——文本框统一宽度（两文件夹框长度一致），数值框做小尺寸。 */
+.setting-item-control input[type="text"] {
+    width: 260px;
+    max-width: 100%;
+}
+.setting-item-control input[type="number"] {
+    width: 90px;
+}
+
+/* 设置页：被联动禁用的开关（如关闭「侧栏显示标签」时，云图开关变灰不可点）。
+ * 仅灰化开关本身，不影响整行文字与描述。 */
+.checkbox-container.is-disabled,
+.checkbox-container input:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ===================== 编辑框实时预览（单栏 Live Preview） ===================== */
+.muse-lp {
+  position: relative;
+  outline: none;
+  /* 与 .muse-input 一致：展开态 96px 起步，失焦且无内容才被下方 :not(...) 收起规则压到 40px */
+  min-height: 96px;
+  /* 避免长内容无限制撑高（max-height:40vh） */
+  max-height: 40vh;
+  overflow-y: auto;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  cursor: text;
+  /* 只过渡 min-height：收起/展开走 0.7s 动画；内容撑高(height)走瞬时，
+   * 避免打字时长高被慢动画拖住手感。transition 加在 min-height 上而非 height。 */
+  transition: min-height 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.muse-lp.is-empty::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  color: var(--text-faint);
+  pointer-events: none;
+  white-space: pre-wrap;
+}
+.muse-lp-line {
+  min-height: 1.6em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.muse-lp-line.is-rendered {
+  white-space: normal;
+}
+.muse-lp-line.is-rendered > * {
+  /* 清零渲染态块元素（h1~h6 / p / ul / ol / li / blockquote 等）的上下 margin，
+   * 让「渲染态」与「活动行源码态」高度一致，避免切换行时光标上下跳动。 */
+  margin-top: 0;
+  margin-bottom: 0;
+}
+/* 渲染态行内出现可点击元素时，避免误触发编辑框失焦 */
+.muse-lp-line.is-rendered a {
+  cursor: pointer;
+}
+
+/* 光标行：仍是源码，但叠加排版样式（仿 Obsidian 编辑视图） */
+.muse-lp-line.is-active {
+  white-space: pre-wrap;
+}
+/* 活动行标题：用真正的 <h1>~<h6> 元素渲染（与「非光标行」MarkdownRenderer 产出的
+ * <hN> 完全一致），因此光标进出标题行时行高严格相等、不再闪烁。字号/行高全部由主题
+ * 决定，这里只负责清零 margin，并把 # 标记单独包成彩色小标记。 */
+.muse-lp-line h1,
+.muse-lp-line h2,
+.muse-lp-line h3,
+.muse-lp-line h4,
+.muse-lp-line h5,
+.muse-lp-line h6 {
+  margin: 0;
+  white-space: pre-wrap;
+}
+/* 行首标题标记 # / ## ... ：彩色 + 加粗 + 缩小 + 轻微右移——整行是大标题，但 # 标记醒目 */
+.lp-hash {
+  color: var(--text-accent);
+  font-weight: 700;
+  font-size: 0.75em;
+  margin-right: 0.2em;
+  vertical-align: baseline;
+}
+.muse-lp-line.lp-quote {
+  border-left: 3px solid var(--text-muted);
+  padding-left: 10px;
+}
+/* 完整渲染态的引用：去掉浏览器默认 40px 缩进与上下 margin，改为左侧竖线 + 可读文本，
+ * 与活动行 .lp-quote（只加竖线、无上下 margin）高度一致，避免引用行在切换时跳动。 */
+.muse-lp-line.is-rendered blockquote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--text-accent);
+  color: var(--text-normal);
+}
+.muse-lp-line.lp-bullet,
+.muse-lp-line.lp-ordered {
+  padding-left: 1.4em;
+}
+.lp-strong { font-weight: 700; }
+.lp-em { font-style: italic; }
+.lp-del { text-decoration: line-through; color: var(--text-muted); }
+.lp-code {
+  font-family: var(--font-monospace);
+  background: var(--background-modifier-hover);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-size: 0.9em;
+}
+.lp-link {
+  color: var(--text-accent);
+  text-decoration: underline;
+}
+
+/* ---------- 标签云（侧栏标签区：按频率缩放字号、横向流式排列） ---------- */
+.muse-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 5px;
+  padding: 6px 10px 12px;
+  line-height: 1.7;
+}
+.muse-tag-cloud-item {
+  display: inline-flex;
+  align-items: baseline;
+  cursor: pointer;
+  color: var(--text-accent);
+  padding: 0 3px;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.muse-tag-cloud-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+.muse-tag-cloud-item.active {
+  background-color: var(--text-accent);
+  color: var(--text-on-accent);
+}
+.muse-tag-cloud-hash {
+  opacity: 0.65;
+  margin-right: 1px;
+  font-weight: 700;
+}
+.muse-tag-cloud-item.active .muse-tag-cloud-hash {
+  opacity: 0.85;
+}
+.muse-tag-cloud-name {
+  font-weight: 500;
+}
+
+/* ================== 分享图预览弹窗 ================== */
+.muse-share-modal-wrap {
+  transform: translateY(-6vh);
+}
+/* X 叉号默认贴在弹窗最顶（top:12px），但标题在内容区里因 padding 偏下，
+   导致两者垂直中心差几个像素。把 X 在分享弹窗里整体下移一点对齐标题。*/
+.muse-share-modal-wrap .modal-close-button {
+  transform: translateY(8px);
+}
+.muse-share-modal {
+  max-width: 720px;
+}
+.muse-share-preview {
+  max-height: 60vh;
+  overflow: auto;
+  text-align: center;
+}
+.muse-share-preview svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.14);
+}
+.muse-share-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.muse-share-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.muse-share-btn:hover {
+  background: var(--background-modifier-hover);
+}
+.muse-share-btn.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.muse-share-btn.mod-cta:hover {
+  background: var(--interactive-accent-hover);
+}
+.muse-suggest {
+  position: fixed;
+  z-index: 1000;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 4px;
+  min-width: 220px;
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+}
+.muse-suggest-item {
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muse-suggest-item.is-active {
+  background: var(--background-modifier-hover);
+  color: var(--text-accent);
+}
